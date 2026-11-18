@@ -388,7 +388,7 @@ export default {
     catch(error){
       const conflict=/ticket capacity|(?:UNIQUE|CHECK) constraint failed/i.test(error.message);
       const status=error instanceof HttpError?error.status:conflict?409:500;
-      if(status===500)console.error('Request failed',error.name,path);
+      if(status===500)console.error('Request failed',error.name,path,error.message);
       const message=error instanceof HttpError?error.message:conflict?'Эрхийн дугаар, багтаамж эсвэл холбоос давхардсан':'Системийн алдаа гарлаа. Дахин оролдоно уу.';
       response=path==='/lookup'||path.startsWith('/admin/import/')?json({error:message},status):html(views.message(message,path.startsWith('/admin')?'/admin':'/'),status);
     }
