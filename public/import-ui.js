@@ -100,7 +100,7 @@ if(form){
   function choices(reset){
     const heading=inspected.rows[Number(fields.header.value)-1]||[];
     const body=inspected.rows.slice(Math.max(0,Number(fields.start.value)-1));
-    const patterns={phone:/утас|гүйлгээний утга|phone|mobile|харилцагч/i,date:/огноо|date|хугацаа|time/i,amount:/дүн|amount|орлого|төгрөг/i,tickets:/эрхийн дугаар|ticket|сугалааны дугаар|дугаар/i};
+    const patterns={phone:/утас|гүйлгээний утга|phone|mobile|харилцагч/i,date:/огноо|date|хугацаа|time/i,amount:/дүн|amount|орлого|төгрөг/i,tickets:/эрхийн дугаар|ticket|сугалааны дугаар|тасалбарын дугаар/i};
     const sampleValues=column=>body.map(row=>String(row[column]||'').trim()).filter(Boolean);
     const isPhone=value=>/(?:\+?976[ -]?)?[1-9]\d{3}[ -]?\d{4}/.test(value);
     const isDate=value=>{const n=Number(value);return n>=20000&&n<=80000||/^\d{4}[-./]\d{1,2}[-./]\d{1,2}/.test(value)||/^\d{1,2}[-./]\d{1,2}[-./]\d{4}/.test(value);};
