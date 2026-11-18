@@ -46,7 +46,6 @@ if(form){
       const phone=read(fields.phone.value),tickets=read(fields.tickets.value);
       const dateValue=fields.date.value===''?'':read(fields.date.value),amountValue=fields.amount.value===''?'':read(fields.amount.value);
       if(phone.trim()||tickets.trim()||dateValue.trim()||amountValue.trim()||Array.from({length:range.e.c+1},(_,col)=>read(col)).some(value=>value.trim()))rows.push([row+1,phone.length<=500?phone:'',tickets,dateValue,amountValue]);
-      }
     }
     return rows;
   }
