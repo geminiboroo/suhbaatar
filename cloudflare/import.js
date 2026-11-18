@@ -3,11 +3,10 @@ import {equals,sign,randomToken} from './crypto.js';
 export function phoneNumber(value){
   return String(value??'').trim().replace(/[\s()-]/g,'').match(/^(?:\+?976)?([1-9]\d{7})$/)?.[1]||'';
 }
-function phoneFromMemo(value){
+export function phonesFromMemo(value){
   const direct=phoneNumber(value);
-  if(direct) return direct;
-  const matches=new Set(Array.from(String(value??'').matchAll(/(?<!\d)(?:\+?976[ -]?)?[1-9]\d{3}[ -]?\d{4}(?!\d)/g),m=>phoneNumber(m[0])).filter(Boolean));
-  return matches.size===1?[...matches][0]:'';
+  if(direct) return [direct];
+  return [...new Set(Array.from(String(value??'').matchAll(/(?<!\d)(?:\+?976[ -]?)?[1-9]\d{3}[ -]?\d{4}(?!\d)/g),m=>phoneNumber(m[0])).filter(Boolean))];
 }
 export function ticketNumbers(value){
   if(!String(value??'').trim()) return [];
@@ -35,10 +34,10 @@ export async function importTickets(db,body,admin,session,mode){
     const [row,rawPhone,rawTickets,rawDate='',rawAmount='']=input;
     if(!Number.isInteger(row)||row<=previous||row>10000||typeof rawPhone!=='string'||rawPhone.length>500||typeof rawTickets!=='string'||rawTickets.length>30000||typeof rawDate!=='string'||rawDate.length>100||typeof rawAmount!=='string'||rawAmount.length>100) throw new Error('Файлын мөрийн бүтэц буруу');
     previous=row;
-    const phone=phoneFromMemo(rawPhone);
+    const phones=Array.isArray(rawPhone)?[...new Set(rawPhone.map(phoneNumber).filter(Boolean))]:phonesFromMemo(rawPhone);
     let reason=null,status='valid',tickets=[],occurredAt=null,amount=null;
     try {
-      if(!phone) throw new Error('Гүйлгээний утга эсвэл мөрийн бусад баганаас нэг тодорхой утасны дугаар олдсонгүй');
+      if(!phones.length) throw new Error('Гүйлгээний утга эсвэл мөрийн бусад баганаас 8 оронтой утасны дугаар олдсонгүй');
       const requested=ticketNumbers(rawTickets);
       if(!requested.length) throw new Error('Эрхийн дугаар оруулаагүй байна');
       if(requested.some(n=>n>campaign.total)) throw new Error('Эрхийн багтаамж эсвэл дугаарын хязгаар зөрсөн');
@@ -56,10 +55,10 @@ export async function importTickets(db,body,admin,session,mode){
     } catch(error){status='invalid';reason=error.message;}
     summary.rows++;
     summary[status]++;
-    data.push({row,phone,tickets,status,reason,occurredAt,amount});
+    data.push({row,phone:phones[0]||'',phones,tickets,status,reason,occurredAt,amount});
   }
   const fingerprint=await sign(session,JSON.stringify([id,campaign.revision,body.rows]));
-  const report=data.map(({row,phone,tickets,status,reason,occurredAt,amount})=>({row,phone,count:tickets.length,tickets,occurredAt,amount,status,reason}));
+  const report=data.map(({row,phone,phones,tickets,status,reason,occurredAt,amount})=>({row,phone,phones,count:tickets.length,tickets,occurredAt,amount,status,reason}));
   if(mode==='preview') return {summary,report,fingerprint};
   if(!equals(fingerprint,body.fingerprint)) throw new Error('Өгөгдөл өөрчлөгдсөн. Урьдчилж дахин шалгана уу');
   if(!summary.valid) throw new Error('Импортлох зөв мөр алга');
@@ -77,6 +76,10 @@ export async function importTickets(db,body,admin,session,mode){
        SELECT ?1,p.id,i.id,json_extract(j.value,'$.row'),json_extract(j.value,'$.occurredAt'),json_extract(j.value,'$.amount'),json_array_length(j.value,'$.tickets'),json_extract(j.value,'$.tickets'),'confirmed'
        FROM json_each(?2) j JOIN participants p ON p.phone=json_extract(j.value,'$.phone')
        JOIN imports i ON i.commit_key=?3 WHERE json_extract(j.value,'$.status')='valid'`,id,payload,key),
+    stmt(`INSERT OR IGNORE INTO participant_phones(phone,participant_id)
+       SELECT phone.value,p.id FROM json_each(?1) j,json_each(j.value,'$.phones') phone
+       JOIN participants p ON p.phone=json_extract(j.value,'$.phone')
+       WHERE json_extract(j.value,'$.status')='valid'`,payload),
     stmt(`INSERT INTO lottery_tickets(campaign_id,transaction_id,number)
        SELECT ?1,t.id,n.value FROM transactions t JOIN imports i ON i.id=t.import_id JOIN json_each(t.requested) n WHERE i.commit_key=?2`,id,key),
     stmt(`INSERT INTO import_rows(import_id,row_no,result,reason,transaction_id)
