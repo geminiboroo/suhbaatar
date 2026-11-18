@@ -644,3 +644,19 @@
 .account-copy{background:#1b3b51;border:1px solid #6e91a7;color:#fff}
 .bank-mini-details{margin:7px 0 0;color:#b8c8d5;font-size:.76rem;line-height:1.5}
 @media(max-width:520px){.lookup-ticket-list li{align-items:flex-start;flex-direction:column;gap:4px}.lookup-ticket-list li span{text-align:left}.campaign-share-actions>*{flex:1}}
+
+/* Sold-out seal: appears only when confirmed ticket sales reach the total */
+.race-site .campaign-image-wrap,.race-site .detail-image-wrap{position:relative;isolation:isolate;overflow:hidden}
+.race-site .campaign-image-wrap{width:100%;height:clamp(220px,22vw,330px);border-radius:13px 13px 0 0}
+.race-site .campaign-image-wrap .cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 37%}
+.race-site .sold-out-stamp{position:absolute;z-index:3;top:18px;right:16px;width:112px;height:112px;border:4px double #fff0c5;border-radius:50%;background:radial-gradient(circle at 35% 28%,#e85b49,#a81422 68%,#650b19);box-shadow:0 5px 18px #0009, inset 0 0 0 4px #a81422, inset 0 0 0 6px #f6d58b;color:#fff7df;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transform:rotate(12deg);text-shadow:0 1px 2px #4d0710}
+.race-site .sold-out-stamp:before{content:"";position:absolute;inset:8px;border:1px dashed #ffe4a8;border-radius:50%;pointer-events:none}
+.race-site .sold-out-stamp span{font:900 1.65rem/1 var(--sans);letter-spacing:-.06em}
+.race-site .sold-out-stamp strong{font:950 1.05rem/1.15 var(--sans);letter-spacing:.03em}
+.race-site .sold-out-stamp small{font:750 .48rem/1.2 var(--sans);letter-spacing:.08em;margin-top:4px}
+.race-site .detail-image-wrap{border-radius:14px;background:#071a2c}
+.race-site .detail-image-wrap .detail-image{display:block;width:100%;height:auto}
+.race-site .sold-out-stamp-large{width:clamp(120px,18vw,170px);height:clamp(120px,18vw,170px);top:22px;right:22px}
+.race-site .sold-out-stamp-large span{font-size:clamp(1.8rem,3vw,2.6rem)}
+.race-site .sold-out-stamp-large strong{font-size:clamp(1.15rem,2vw,1.55rem)}
+@media(max-width:700px){.race-site .campaign-image-wrap{height:220px}.race-site .sold-out-stamp{width:96px;height:96px;top:12px;right:12px}.race-site .sold-out-stamp span{font-size:1.4rem}.race-site .sold-out-stamp strong{font-size:.9rem}.race-site .sold-out-stamp-large{width:112px;height:112px}}
