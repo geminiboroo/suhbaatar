@@ -38,9 +38,7 @@ export async function importTickets(db,body,admin,session,mode){
     const phone=phoneFromMemo(rawPhone);
     let reason=null,status='valid',tickets=[],occurredAt=null,amount=null;
     try {
-      if(rawDate.trim()){const parsedDate=new Date(rawDate);if(!Number.isFinite(+parsedDate))throw new Error('Шилжүүлгийн огноо буруу');occurredAt=parsedDate.toISOString();}
-      if(rawAmount.trim()){const parsedAmount=Number(rawAmount.replace(/[₮,\s]/g,''));if(!Number.isSafeInteger(parsedAmount)||parsedAmount<1||parsedAmount>1000000000)throw new Error('Шилжүүлгийн дүн буруу');amount=parsedAmount;}
-      if(!phone) throw new Error('Утасны нэг тодорхой дугаар олдсонгүй');
+      if(!phone) throw new Error('Гүйлгээний утга эсвэл мөрийн бусад баганаас нэг тодорхой утасны дугаар олдсонгүй');
       const requested=ticketNumbers(rawTickets);
       if(!requested.length) throw new Error('Эрхийн дугаар оруулаагүй байна');
       if(requested.some(n=>n>campaign.total)) throw new Error('Эрхийн багтаамж эсвэл дугаарын хязгаар зөрсөн');
