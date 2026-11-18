@@ -214,9 +214,17 @@ async function route(req,env){
       return redirect('/admin');
     }
     if(method==='POST'&&id&&campaignPath[2]==='/hard-delete'){
-      const linked=await one('SELECT count(*) count FROM transactions WHERE campaign_id=?1',id);
-      if(linked.count)fail('Энэ сугалаанд гүйлгээ бүртгэгдсэн тул бүрмөсөн устгах боломжгүй. Архивлаж хадгална уу.');
-      await db.batch([stmt('DELETE FROM bank_accounts WHERE campaign_id=?1',id),audit(admin.id,'campaign.deleted',id),stmt('DELETE FROM campaigns WHERE id=?1',id)]);
+      const exists=await one('SELECT id FROM campaigns WHERE id=?1',id);
+      if(!exists)fail('Сугалаа олдсонгүй',404);
+      await db.batch([
+        stmt('DELETE FROM import_rows WHERE import_id IN (SELECT id FROM imports WHERE campaign_id=?1) OR transaction_id IN (SELECT id FROM transactions WHERE campaign_id=?1)',id),
+        stmt('DELETE FROM lottery_tickets WHERE campaign_id=?1',id),
+        stmt('DELETE FROM transactions WHERE campaign_id=?1',id),
+        stmt('DELETE FROM imports WHERE campaign_id=?1',id),
+        stmt('DELETE FROM bank_accounts WHERE campaign_id=?1',id),
+        audit(admin.id,'campaign.deleted',id),
+        stmt('DELETE FROM campaigns WHERE id=?1',id)
+      ]);
       return redirect('/admin');
     }
   }
