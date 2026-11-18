@@ -103,7 +103,7 @@ async function route(req,env){
     if(path!=='/'&&!campaign)return html(views.message('Сугалаа олдсонгүй'),404);
     const campaigns=campaign?[]:await all(statsSql+` WHERE ${active} ORDER BY c.id DESC`);
     const copyRow=await one("SELECT value FROM site_settings WHERE key='copy'");
-    return html(views.home({campaigns,campaign,origin,facebook:await setting('facebook'),copy:copyRow?JSON.parse(copyRow.value):{}}));
+    return html(views.home({campaigns,campaign,origin,facebook:await setting('facebook'),facebookLive:await setting('facebook_live'),copy:copyRow?JSON.parse(copyRow.value):{}}));
   }
   const media=path.match(/^\/media\/([a-f0-9]{64})$/);
   if(method==='GET'&&media){
@@ -175,7 +175,7 @@ async function route(req,env){
     return redirect('/admin/login',cookie('',0,secure));
   }
   if(path==='/admin'&&method==='GET'){
-    const [campaigns,stats,logs,imports,facebook,copyRow]=await Promise.all([
+    const [campaigns,stats,logs,imports,facebook,facebookLive,copyRow]=await Promise.all([
       all(statsSql+' WHERE NOT c.archived ORDER BY c.id DESC'),
       one(`SELECT count(*) transactions,count(*) FILTER (WHERE status='confirmed') confirmed,
        count(*) FILTER (WHERE status='pending') pending,count(DISTINCT participant_id) FILTER(WHERE status='confirmed') participants,
@@ -183,20 +183,22 @@ async function route(req,env){
        (SELECT count(*) FROM campaigns c WHERE ${active}) active FROM transactions`),
       all('SELECT action,target,created_at FROM audit_logs ORDER BY id DESC LIMIT 15'),
       all('SELECT i.*,c.title FROM imports i JOIN campaigns c ON c.id=i.campaign_id ORDER BY i.id DESC LIMIT 25'),
-      setting('facebook'),one("SELECT value FROM site_settings WHERE key='copy'")
+      setting('facebook'),setting('facebook_live'),one("SELECT value FROM site_settings WHERE key='copy'")
     ]);
     for(const row of imports)row.summary=JSON.parse(row.summary);
-    return html(views.admin(campaigns,stats,logs,imports,facebook,admin.role==='owner',true,copyRow?JSON.parse(copyRow.value):{}));
+    return html(views.admin(campaigns,stats,logs,imports,facebook,facebookLive,admin.role==='owner',true,copyRow?JSON.parse(copyRow.value):{}));
   }
   if(path==='/admin/site'&&method==='POST'){
     owner();
     const body=await readBody(req);
     const facebook=httpsUrl(field(body,'facebook',2048));
+    const facebookLive=httpsUrl(field(body,'facebookLive',2048));
     if(facebook&&!['www.facebook.com','facebook.com','m.facebook.com','fb.com','fb.me','m.me'].includes(new URL(facebook).hostname)) fail('Facebook холбоос оруулна уу');
+    if(facebookLive&&!['www.facebook.com','facebook.com','m.facebook.com','fb.watch'].includes(new URL(facebookLive).hostname)) fail('Facebook LIVE холбоос оруулна уу');
     const keys=['heroTitle','heroBrand','heroTagline','heroIntro','lookupTitle','lookupHelp','lookupButton','phoneLabel','campaignHeading','campaignIntro','helpTitle','helpText','priceLabel','shareLabel','contactLabel','navHome','navCampaigns','navLookup','navHelp','railCampaigns','railLookup','railHelp','noCampaignTitle','noCampaignText','detailLabel','bankMemo','bankNote'];
     const copy={};for(const key of keys)copy[key]=field(body,key,1200);
     for(const key of ['showPrice','showStats','showBank','showShare','showContact'])copy[key]=body[key]==='on';
-    await db.batch([stmt("INSERT INTO site_settings VALUES ('facebook',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",facebook),stmt("INSERT INTO site_settings VALUES ('copy',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",JSON.stringify(copy)),audit(admin.id,'site.updated','copy')]);
+    await db.batch([stmt("INSERT INTO site_settings VALUES ('facebook',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",facebook),stmt("INSERT INTO site_settings VALUES ('facebook_live',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",facebookLive),stmt("INSERT INTO site_settings VALUES ('copy',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",JSON.stringify(copy)),audit(admin.id,'site.updated','copy')]);
     return redirect('/admin');
   }
   const campaignPath=path.match(/^\/admin\/campaigns\/(new|[1-9]\d*)(\/(?:delete|hard-delete))?$/);
