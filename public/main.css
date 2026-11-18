@@ -772,3 +772,19 @@
  .race-site .contact-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;gap:9px}
  .race-site .contact-actions .button{flex:1 1 140px;min-width:0}
 }
+
+/* Campaign detail: image and ticket status above; bank and lookup below. */
+.race-site .race-detail .detail{align-items:start;gap:clamp(20px,3vw,36px)}
+.race-site .race-detail .detail-image-wrap{grid-column:2;grid-row:1;align-self:start}
+.race-site .race-detail .detail>div:first-child{grid-column:1;grid-row:1;min-width:0}
+.race-site .race-detail .detail-lower{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;width:min(100% - 2rem,1200px);margin:0 auto;padding:0 0 clamp(28px,5vw,56px)}
+.race-site .race-detail .detail-lower .payment-card,.race-site .race-detail .detail-lower .lookup-card{width:100%;max-width:none;margin:0;min-width:0}
+.race-site .race-detail .detail-lower .lookup-form{max-width:100%}
+.race-site .race-detail .detail-lower #lookup-status{width:100%;max-width:100%;min-width:0}
+@media(max-width:700px){
+ .race-site .race-detail .detail{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+ .race-site .race-detail .detail>div:first-child{grid-column:1;grid-row:2}
+ .race-site .race-detail .detail-image-wrap{grid-column:1;grid-row:1;width:100%}
+ .race-site .race-detail .detail-image{width:100%;height:auto;max-height:none;object-fit:contain}
+ .race-site .race-detail .detail-lower{width:calc(100% - 24px);gap:12px}
+}
