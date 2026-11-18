@@ -31,9 +31,9 @@ if(form){
       rows:Array.from({length:Math.min(12,range.e.r+1)},(_,r)=>Array.from({length:range.e.c+1},(_,c)=>cell(r,c).slice(0,160)))};
   }
   function selectedRows(){
-    const start=Number(fields.start.value),header=Number(fields.header.value);
-    if(!Number.isInteger(start)||start<1||!Number.isInteger(header)||header<0||header>=start||fields.phone.value===''||
-      fields.tickets.value===''||fields.phone.value===fields.tickets.value)throw new Error('Мөр, утас болон эрхийн баганыг шалгана уу.');
+    const start=Number(fields.start?.value??1),header=Number(fields.header?.value??0);
+    if(!Number.isInteger(start)||start<1||!Number.isInteger(header)||header<0||header>=start||!fields.phone?.value||
+      !fields.tickets?.value||fields.phone.value===fields.tickets.value)throw new Error('Мөр, утас болон эрхийн баганыг шалгана уу.');
     const table=book?.Sheets[fields.sheet.value];
     if(!table?.['!ref'])return [];
     const range=window.XLSX.utils.decode_range(table['!ref']);
@@ -44,7 +44,7 @@ if(form){
         return cell?.f||cell?.F||cell?.t==='e'?'#INVALID_CELL':String(cell?.v??'');
       };
       const phone=read(fields.phone.value),tickets=read(fields.tickets.value);
-      const dateValue=fields.date.value===''?'':read(fields.date.value),amountValue=fields.amount.value===''?'':read(fields.amount.value);
+      const dateValue=!fields.date?.value?'':read(fields.date.value),amountValue=!fields.amount?.value?'':read(fields.amount.value);
       if(phone.trim()||tickets.trim()||dateValue.trim()||amountValue.trim()||Array.from({length:range.e.c+1},(_,col)=>read(col)).some(value=>value.trim()))rows.push([row+1,phone.length<=500?phone:'',tickets,dateValue,amountValue]);
     }
     return rows;
@@ -93,14 +93,15 @@ if(form){
       body.some(row=>row[0]&&row[1]&&row[2]&&row[3]);
     for(const name of keys){
       const select=fields[name];
-      const old=select.value;
+      const old=select?.value??'';
+      if(!select)continue;
       select.replaceChildren(new Option('Багана сонгох',''));
       for(let c=0;c<inspected.columns;c++) select.add(new Option(letter(c)+(heading[c]?' · '+heading[c]:''),c));
       const named=heading.findIndex(value=>patterns[name].test(value));
       let guessed=named;
       if(reset&&grouped) guessed=({phone:3,date:1,amount:2,tickets:0})[name];
       if(guessed<0 && ['phone','date','amount'].includes(name)){
-        const used=new Set(keys.slice(0,keys.indexOf(name)).map(key=>fields[key].value));
+        const used=new Set(keys.slice(0,keys.indexOf(name)).map(key=>fields[key]?.value??''));
         const match={
           phone:/^\s*(?:\+?976\s?)?[1-9]\d{3}[ -]?\d{4}\s*$/,
           date:/^(?:\d{4}[-./]\d{1,2}[-./]\d{1,2}|4\d{4}(?:\.\d+)?)$/,
