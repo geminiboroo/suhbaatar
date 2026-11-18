@@ -31,13 +31,15 @@ export async function importTickets(db,body,admin,session,mode){
   const data=[];
   let previous=0;
   for(const input of body.rows){
-    if(!Array.isArray(input)||input.length!==3) throw new Error('Файлын мөрийн бүтэц буруу');
-    const [row,rawPhone,rawTickets]=input;
-    if(!Number.isInteger(row)||row<=previous||row>10000||typeof rawPhone!=='string'||rawPhone.length>500||typeof rawTickets!=='string'||rawTickets.length>30000) throw new Error('Файлын мөрийн бүтэц буруу');
+    if(!Array.isArray(input)||(input.length!==3&&input.length!==5)) throw new Error('Файлын мөрийн бүтэц буруу');
+    const [row,rawPhone,rawTickets,rawDate='',rawAmount='']=input;
+    if(!Number.isInteger(row)||row<=previous||row>10000||typeof rawPhone!=='string'||rawPhone.length>500||typeof rawTickets!=='string'||rawTickets.length>30000||typeof rawDate!=='string'||rawDate.length>100||typeof rawAmount!=='string'||rawAmount.length>100) throw new Error('Файлын мөрийн бүтэц буруу');
     previous=row;
     const phone=phoneFromMemo(rawPhone);
-    let reason=null,status='valid',tickets=[];
+    let reason=null,status='valid',tickets=[],occurredAt=null,amount=null;
     try {
+      if(rawDate.trim()){const parsedDate=new Date(rawDate);if(!Number.isFinite(+parsedDate))throw new Error('Шилжүүлгийн огноо буруу');occurredAt=parsedDate.toISOString();}
+      if(rawAmount.trim()){const parsedAmount=Number(rawAmount.replace(/[₮,\s]/g,''));if(!Number.isSafeInteger(parsedAmount)||parsedAmount<1||parsedAmount>1000000000)throw new Error('Шилжүүлгийн дүн буруу');amount=parsedAmount;}
       if(!phone) throw new Error('Утасны нэг тодорхой дугаар олдсонгүй');
       tickets=ticketNumbers(rawTickets);
       if(!tickets.length) throw new Error('Эрхийн дугаар оруулаагүй байна');
@@ -47,10 +49,10 @@ export async function importTickets(db,body,admin,session,mode){
     } catch(error){status='invalid';reason=error.message;}
     summary.rows++;
     summary[status]++;
-    data.push({row,phone,tickets,status,reason});
+    data.push({row,phone,tickets,status,reason,occurredAt,amount});
   }
   const fingerprint=await sign(session,JSON.stringify([id,campaign.revision,body.rows]));
-  const report=data.map(({row,phone,tickets,status,reason})=>({row,phone,count:tickets.length,status,reason}));
+  const report=data.map(({row,phone,tickets,status,reason,occurredAt,amount})=>({row,phone,count:tickets.length,tickets,occurredAt,amount,status,reason}));
   if(mode==='preview') return {summary,report,fingerprint};
   if(!equals(fingerprint,body.fingerprint)) throw new Error('Өгөгдөл өөрчлөгдсөн. Урьдчилж дахин шалгана уу');
   if(!summary.valid) throw new Error('Импортлох зөв мөр алга');
@@ -64,8 +66,8 @@ export async function importTickets(db,body,admin,session,mode){
        id,campaign.revision,admin,JSON.stringify(summary),key),
     stmt(`INSERT OR IGNORE INTO participants(phone)
        SELECT DISTINCT json_extract(value,'$.phone') FROM json_each(?1) WHERE json_extract(value,'$.status')='valid'`,payload),
-    stmt(`INSERT INTO transactions(campaign_id,participant_id,import_id,source_row,count,requested,status)
-       SELECT ?1,p.id,i.id,json_extract(j.value,'$.row'),json_array_length(j.value,'$.tickets'),json_extract(j.value,'$.tickets'),'confirmed'
+    stmt(`INSERT INTO transactions(campaign_id,participant_id,import_id,source_row,occurred_at,amount,count,requested,status)
+       SELECT ?1,p.id,i.id,json_extract(j.value,'$.row'),json_extract(j.value,'$.occurredAt'),json_extract(j.value,'$.amount'),json_array_length(j.value,'$.tickets'),json_extract(j.value,'$.tickets'),'confirmed'
        FROM json_each(?2) j JOIN participants p ON p.phone=json_extract(j.value,'$.phone')
        JOIN imports i ON i.commit_key=?3 WHERE json_extract(j.value,'$.status')='valid'`,id,payload,key),
     stmt(`INSERT INTO lottery_tickets(campaign_id,transaction_id,number)
