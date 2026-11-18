@@ -118,14 +118,16 @@ async function route(req,env){
     const campaignId=body.campaign?number(body.campaign):0;
     if(body.campaign&&!campaignId)fail('Сугалаагаа шалгана уу.');
     await rate(db,req,'lookup',30,600);
-    const found=await all(`SELECT c.id campaign_id,c.title,c.slug,count(l.number) count
+    const found=await all(`SELECT c.id campaign_id,c.title,c.slug,l.number ticket_number,t.occurred_at,t.amount,t.id transaction_id
       FROM participants p JOIN transactions t ON t.participant_id=p.id
       JOIN lottery_tickets l ON l.transaction_id=t.id JOIN campaigns c ON c.id=l.campaign_id
       WHERE p.phone=?1 AND t.status='confirmed' AND c.public AND NOT c.archived
       AND (?2=0 OR c.id=?2)
-      GROUP BY c.id,c.title,c.slug ORDER BY c.id DESC`,phone,campaignId);
-    const total=found.reduce((sum,row)=>sum+Number(row.count||0),0);
-    return json({count:total,campaigns:found.map(row=>({id:row.campaign_id,title:row.title,slug:row.slug,count:Number(row.count)}))});
+      ORDER BY c.id DESC,t.occurred_at DESC,t.id DESC,l.number ASC LIMIT 500`,phone,campaignId);
+    const grouped=new Map();
+    for(const row of found){if(!grouped.has(row.campaign_id))grouped.set(row.campaign_id,{id:row.campaign_id,title:row.title,slug:row.slug,tickets:[]});grouped.get(row.campaign_id).tickets.push({number:row.ticket_number,occurredAt:row.occurred_at,amount:row.amount,transactionId:row.transaction_id});}
+    const campaigns=[...grouped.values()].map(c=>({...c,count:c.tickets.length}));
+    return json({count:campaigns.reduce((sum,c)=>sum+c.count,0),campaigns});
   }
   if(path==='/admin/login'&&method==='GET')return html(views.login());
   if(path==='/admin/login'&&method==='POST'){
