@@ -11,10 +11,10 @@ function phoneFromMemo(value){
 }
 export function ticketNumbers(value){
   if(!String(value??'').trim()) return [];
-  const fields=String(value).trim().split(/[\s,;]+/);
-  if(fields.length>5000 || fields.some(x=>!/^\d+(?:\.0+)?$/.test(x))) throw new Error('Эрхийн дугаар буруу эсвэл давхардсан');
+  const fields=String(value).trim().split(/[\\s,;]+/);
+  if(fields.length>5000 || fields.some(x=>!/^[0-9]+(?:\\.0+)?$/.test(x))) throw new Error('Эрхийн дугаарын формат буруу');
   const numbers=fields.map(Number);
-  if(numbers.some(x=>!Number.isInteger(x)||x<1||x>1000000)||new Set(numbers).size!==numbers.length) throw new Error('Эрхийн дугаар буруу эсвэл давхардсан');
+  if(numbers.some(x=>!Number.isSafeInteger(x)||x<1||x>1000000)) throw new Error('Эрхийн дугаар 1–1,000,000 хооронд байх ёстой');
   return numbers;
 }
 export async function importTickets(db,body,admin,session,mode){
@@ -41,11 +41,20 @@ export async function importTickets(db,body,admin,session,mode){
       if(rawDate.trim()){const parsedDate=new Date(rawDate);if(!Number.isFinite(+parsedDate))throw new Error('Шилжүүлгийн огноо буруу');occurredAt=parsedDate.toISOString();}
       if(rawAmount.trim()){const parsedAmount=Number(rawAmount.replace(/[₮,\s]/g,''));if(!Number.isSafeInteger(parsedAmount)||parsedAmount<1||parsedAmount>1000000000)throw new Error('Шилжүүлгийн дүн буруу');amount=parsedAmount;}
       if(!phone) throw new Error('Утасны нэг тодорхой дугаар олдсонгүй');
-      tickets=ticketNumbers(rawTickets);
-      if(!tickets.length) throw new Error('Эрхийн дугаар оруулаагүй байна');
-      if(tickets.some(n=>used.has(n))){status='duplicate';reason='Гүйлгээ эсвэл эрхийн дугаар давхардсан';}
-      else if(tickets.some(n=>n>campaign.total)) throw new Error('Эрхийн багтаамж эсвэл дугаарын хязгаар зөрсөн');
-      else {for(const n of tickets) used.add(n);summary.tickets+=tickets.length;}
+      const requested=ticketNumbers(rawTickets);
+      if(!requested.length) throw new Error('Эрхийн дугаар оруулаагүй байна');
+      if(requested.some(n=>n>campaign.total)) throw new Error('Эрхийн багтаамж эсвэл дугаарын хязгаар зөрсөн');
+      const unique=[...new Set(requested)];
+      const skippedInRow=requested.length-unique.length;
+      tickets=unique.filter(n=>!used.has(n));
+      const skipped=skippedInRow+(unique.length-tickets.length);
+      summary.duplicate+=skipped;
+      if(!tickets.length){status='duplicate';reason='Бүх эрх өмнө бүртгэгдсэн тул алгаслаа';}
+      else{
+        for(const n of tickets)used.add(n);
+        summary.tickets+=tickets.length;
+        if(skipped)reason=skipped+' давхардсан дугаарыг алгасаж, шинэ эрхүүдийг импортлоно';
+      }
     } catch(error){status='invalid';reason=error.message;}
     summary.rows++;
     summary[status]++;
