@@ -5,7 +5,8 @@ import {importTickets,phoneNumber,ticketNumbers} from './import.js';
 const active="c.active AND c.public AND NOT c.archived AND (c.starts IS NULL OR c.starts<=strftime('%Y-%m-%dT%H:%M:%fZ','now')) AND (c.ends IS NULL OR c.ends>strftime('%Y-%m-%dT%H:%M:%fZ','now'))";
 const statsSql=`SELECT c.*,
  (SELECT count(DISTINCT t.participant_id) FROM transactions t JOIN lottery_tickets l ON l.transaction_id=t.id WHERE t.campaign_id=c.id AND t.status='confirmed') participants,
- (SELECT count(*) FROM lottery_tickets l WHERE l.campaign_id=c.id) sold FROM campaigns c`;
+ (SELECT count(*) FROM lottery_tickets l WHERE l.campaign_id=c.id) sold,
+ b.bank,b.holder,b.account,b.iban,b.logo,b.provider FROM campaigns c LEFT JOIN bank_accounts b ON b.campaign_id=c.id`;
 const nowSql="strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 const validation='Оруулсан мэдээллийн форматыг шалгана уу';
 class HttpError extends Error {constructor(status,message){super(message);this.status=status;}}
@@ -189,7 +190,7 @@ async function route(req,env){
     await db.batch([stmt("INSERT INTO site_settings VALUES ('facebook',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",facebook),audit(admin.id,'site.updated','facebook')]);
     return redirect('/admin');
   }
-  const campaignPath=path.match(/^\/admin\/campaigns\/(new|[1-9]\d*)(\/delete)?$/);
+  const campaignPath=path.match(/^\/admin\/campaigns\/(new|[1-9]\d*)(\/(?:delete|hard-delete))?$/);
   if(campaignPath){
     owner();
     const id=number(campaignPath[1]);
@@ -199,8 +200,14 @@ async function route(req,env){
       if(!campaign)fail('Сугалаа олдсонгүй',404);
       return html(views.campaignForm(campaign));
     }
-    if(method==='POST'&&id&&campaignPath[2]){
+    if(method==='POST'&&id&&campaignPath[2]==='/delete'){
       await db.batch([stmt('UPDATE campaigns SET archived=1,active=0,public=0,revision=revision+1 WHERE id=?1',id),audit(admin.id,'campaign.archived',id)]);
+      return redirect('/admin');
+    }
+    if(method==='POST'&&id&&campaignPath[2]==='/hard-delete'){
+      const linked=await one('SELECT count(*) count FROM transactions WHERE campaign_id=?1',id);
+      if(linked.count)fail('Энэ сугалаанд гүйлгээ бүртгэгдсэн тул бүрмөсөн устгах боломжгүй. Архивлаж хадгална уу.');
+      await db.batch([stmt('DELETE FROM bank_accounts WHERE campaign_id=?1',id),audit(admin.id,'campaign.deleted',id),stmt('DELETE FROM campaigns WHERE id=?1',id)]);
       return redirect('/admin');
     }
   }
@@ -208,8 +215,9 @@ async function route(req,env){
     owner();
     const body=await readBody(req,1700000);
     const id=number(body.id),slug=field(body,'slug',100,true),title=field(body,'title',150,true),description=field(body,'description',6000,true);
-    const total=number(body.total,1000000),goal=body.participantGoal?number(body.participantGoal,1000000):null;
-    if(!total||body.participantGoal&&!goal||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))fail();
+    const total=number(body.total,1000000),price=number(body.price,1000000000),goal=body.participantGoal?number(body.participantGoal,1000000):null;
+    if(!total||!price||body.participantGoal&&!goal||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))fail();
+    const bank=field(body,'bank',100),holder=field(body,'holder',120),account=field(body,'account',40),iban=field(body,'iban',40),logo=httpsUrl(field(body,'logo',2048))||null,provider=field(body,'provider',100);
     const starts=date(field(body,'starts',40)),ends=date(field(body,'ends',40));
     if(starts&&ends&&starts>=ends)fail('Сугалааны хугацааг шалгана уу');
     let image=httpsUrl(field(body,'image',2048),true)||null;
@@ -223,12 +231,14 @@ async function route(req,env){
       statements.push(stmt('INSERT OR IGNORE INTO images VALUES (?1,?2,?3)',mediaId,mime,bytes.buffer));
       image='/media/'+mediaId;
     }
-    const values=[slug,title,description,image,total,Number(body.active==='on'),Number(body.public==='on'),starts,ends,goal];
+    const values=[slug,title,description,image,total,Number(body.active==='on'),Number(body.public==='on'),starts,ends,goal,price];
     if(id){
-      statements.push(stmt('UPDATE campaigns SET (slug,title,description,image,total,active,public,starts,ends,participant_goal)=(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10),revision=revision+1 WHERE id=?11 AND NOT archived',...values,id));
+      statements.push(stmt('UPDATE campaigns SET (slug,title,description,image,total,active,public,starts,ends,participant_goal,price)=(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11),revision=revision+1 WHERE id=?12 AND NOT archived',...values,id));
+      statements.push(stmt('INSERT INTO bank_accounts(campaign_id,bank,holder,account,iban,logo,provider) VALUES (?1,?2,?3,?4,?5,?6,?7) ON CONFLICT(campaign_id) DO UPDATE SET bank=excluded.bank,holder=excluded.holder,account=excluded.account,iban=excluded.iban,logo=excluded.logo,provider=excluded.provider',id,bank,holder,account,iban,logo,provider));
       statements.push(audit(admin.id,'campaign.updated',id));
     }else{
-      statements.push(stmt('INSERT INTO campaigns(slug,title,description,image,total,active,public,starts,ends,participant_goal) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)',...values));
+      statements.push(stmt('INSERT INTO campaigns(slug,title,description,image,total,active,public,starts,ends,participant_goal,price) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)',...values));
+      statements.push(stmt('INSERT INTO bank_accounts(campaign_id,bank,holder,account,iban,logo,provider) SELECT id,?2,?3,?4,?5,?6,?7 FROM campaigns WHERE slug=?1',slug,bank,holder,account,iban,logo,provider));
       statements.push(stmt("INSERT INTO audit_logs(admin_id,action,target) SELECT ?1,'campaign.created',id FROM campaigns WHERE slug=?2",admin.id,slug));
     }
     await db.batch(statements);
