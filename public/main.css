@@ -229,3 +229,79 @@
   .race-site .hero-layout { gap: .75rem; }
   .race-site .hero .lookup-card { width: 100%; max-width: none; }
 }
+
+
+/* High-contrast mobile hero lookup and clear payment instructions. */
+@media (max-width: 900px) {
+  .race-site .hero .lookup-card {
+    background: #fffdf7;
+    color: #10243a;
+    border: 2px solid #f4c76b;
+    border-radius: 16px;
+    box-shadow: 0 16px 42px #020b1acc;
+  }
+  .race-site .hero .lookup-content { padding: 1.25rem; }
+  .race-site .hero .lookup-content h2 {
+    color: #071a30;
+    font-size: clamp(1.8rem, 7vw, 2.25rem);
+    font-weight: 900;
+  }
+  .race-site .hero .lookup-content > p,
+  .race-site .hero .lookup-form label { color: #25364b; font-weight: 650; }
+  .race-site .hero .lookup-content > p { font-size: 1rem; line-height: 1.45; }
+  .race-site .hero .lookup-content .phone-field {
+    background: #fff;
+    border: 2px solid #64748b;
+    border-radius: 9px;
+  }
+  .race-site .hero .lookup-content .phone-field input {
+    color: #071a30;
+    font-size: 1.25rem;
+    font-weight: 750;
+    min-height: 54px;
+  }
+  .race-site .hero .lookup-content .lookup-form .button {
+    color: #17130a;
+    font-weight: 900;
+    min-height: 54px;
+  }
+  .race-site .hero .lookup-content #lookup-status { color: #10243a; }
+}
+.payment-card {
+  margin: 1rem 0 1.25rem;
+  padding: clamp(1rem, 3vw, 1.45rem);
+  color: #10243a;
+  background: linear-gradient(145deg, #fffdf7, #f1f5f2);
+  border: 1px solid #d8b45f;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px #020b1a40;
+}
+.bank-brand { display:flex; align-items:center; gap:.8rem; padding-bottom:.9rem; border-bottom:1px solid #d8dedb; }
+.bank-logo-mark {
+  display:grid; place-items:center; width:48px; height:48px; flex:none;
+  border-radius:50%; color:#fff; background:#087c45; border:3px solid #d7b75e;
+  font:900 1.7rem Georgia,serif;
+}
+.bank-logo-image { width:52px; height:52px; object-fit:contain; flex:none; }
+.bank-brand strong { display:block; color:#087343; font-size:1.1rem; font-weight:900; letter-spacing:.025em; }
+.bank-brand small { display:block; color:#445468; font-size:.7rem; font-weight:800; letter-spacing:.12em; margin-top:.15rem; }
+.payment-card dl { display:grid; gap:.7rem; margin:1rem 0; }
+.payment-card dl > div { padding:.65rem .75rem; background:#fff; border:1px solid #dce2df; border-radius:9px; }
+.payment-card dt { color:#475569; font-size:.76rem; font-weight:850; letter-spacing:.03em; }
+.payment-card dd { margin:.2rem 0 0; color:#071a30; font-size:1.05rem; font-weight:850; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.payment-card dl > div:last-child dd { font-size:.9rem; }
+.payment-note { margin:0; padding:.7rem .8rem; color:#713f12; background:#fff2cf; border-radius:8px; font-size:.82rem; font-weight:750; line-height:1.45; }
+.ticket-price { display:flex; align-items:center; flex-wrap:wrap; gap:.65rem; color:#f7d38a; font-size:.83rem; font-weight:850; letter-spacing:.06em; }
+.ticket-price strong { font-size:1.5rem; color:#fff; letter-spacing:0; }
+.card-price { color:#ffe0a0; font-size:.9rem; margin:.45rem 0; }
+.card-price strong { font-size:1.1rem; color:#fff; }
+.bank-fields { border:1px solid #c8c5b7; border-radius:8px; padding:1rem; }
+.bank-fields legend { padding:0 .45rem; font-weight:850; }
+.campaign-danger-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin:1rem 0; }
+@media(max-width:650px) {
+  .payment-card { margin-inline:0; padding:1rem; }
+  .payment-card dd { font-size:1rem; }
+  .ticket-price strong { font-size:1.35rem; }
+  .campaign-danger-actions form { width:100%; }
+  .campaign-danger-actions button { width:100%; }
+}
