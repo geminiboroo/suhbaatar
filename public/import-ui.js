@@ -7,7 +7,7 @@ if(form){
   const status=document.getElementById('import-status');
   const report=document.getElementById('import-report');
   const sample=document.getElementById('sample-data');
-  const keys=['phone','tickets'];
+  const keys=['phone','tickets','date','amount'];
   let fingerprint='', inspected=null,revision=0,book=null,source=null;
   const edge=Boolean(window.XLSX);
   async function readLocal(payload){
@@ -44,8 +44,8 @@ if(form){
         return cell?.f||cell?.F||cell?.t==='e'?'#INVALID_CELL':String(cell?.v??'');
       };
       const phone=read(fields.phone.value),tickets=read(fields.tickets.value);
-      if(phone.trim()||tickets.trim()||Array.from({length:range.e.c+1},(_,col)=>read(col)).some(value=>value.trim())){
-        rows.push([row+1,phone.length<=500?phone:'',tickets]);
+      const dateValue=fields.date.value===''?'':read(fields.date.value),amountValue=fields.amount.value===''?'':read(fields.amount.value);
+      if(phone.trim()||tickets.trim()||dateValue.trim()||amountValue.trim()||Array.from({length:range.e.c+1},(_,col)=>read(col)).some(value=>value.trim()))rows.push([row+1,phone.length<=500?phone:'',tickets,dateValue,amountValue]);
       }
     }
     return rows;
@@ -89,7 +89,7 @@ if(form){
   function choices(reset){
     const heading=inspected.rows[Number(fields.header.value)-1]||[];
     const body=inspected.rows.slice(Math.max(0,Number(fields.start.value)-1));
-    const patterns={phone:/утас|гүйлгээний утга|phone|mobile/i,date:/огноо|date/i,amount:/дүн|amount|орлого/i,count:/эрхийн тоо|quantity|count/i,tickets:/эрхийн дугаар|ticket|сугалааны дугаар/i};
+    const patterns={phone:/утас|гүйлгээний утга|phone|mobile/i,date:/огноо|date|хугацаа|time/i,amount:/дүн|amount|орлого/i,tickets:/эрхийн дугаар|ticket|сугалааны дугаар/i};
     const grouped=inspected.columns>=4 && /тод\s+хүрэн\s+үрээ/i.test(inspected.rows[0]?.[0]||'') &&
       body.some(row=>row[0]&&row[1]&&row[2]&&row[3]);
     for(const name of keys){
@@ -99,7 +99,7 @@ if(form){
       for(let c=0;c<inspected.columns;c++) select.add(new Option(letter(c)+(heading[c]?' · '+heading[c]:''),c));
       const named=heading.findIndex(value=>patterns[name].test(value));
       let guessed=named;
-      if(reset&&grouped) guessed=({phone:3,date:1,amount:2,tickets:0,count:-1})[name];
+      if(reset&&grouped) guessed=({phone:3,date:1,amount:2,tickets:0})[name];
       if(guessed<0 && ['phone','date','amount'].includes(name)){
         const used=new Set(keys.slice(0,keys.indexOf(name)).map(key=>fields[key].value));
         const match={
