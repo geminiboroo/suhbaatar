@@ -54,7 +54,8 @@ if(form){
     const file=fields.file.files[0];if(!file){status.textContent='';return;}
     status.textContent='Бүх Excel хуудсыг автоматаар уншиж байна…';
     try{const scan=await inspectFile(file);if(version!==revision)return;rows=scan.rows;
-      const col=n=>{let x=n+1,label='';while(x){const r=(x-1)%26;label=String.fromCharCode(65+r)+label;x=Math.floor((x-1)/26);}return label;};\n      status.textContent='Нийт '+scan.total+' мөр танилаа. '+scan.sheets.map(s=>s.name+': '+(s.count?s.count+' мөр (эрх '+col(s.ticketCol)+', утас/гүйлгээ '+col(s.phoneCol)+')':'алгассан — '+s.reason)).join(' · ');
+      const col=n=>{let x=n+1,label='';while(x){const r=(x-1)%26;label=String.fromCharCode(65+r)+label;x=Math.floor((x-1)/26);}return label;};
+      status.textContent='Нийт '+scan.total+' мөр танилаа. '+scan.sheets.map(s=>s.name+': '+(s.count?s.count+' мөр (эрх '+col(s.ticketCol)+', утас/гүйлгээ '+col(s.phoneCol)+')':'алгассан — '+s.reason)).join(' · ');
       preview.disabled=false;
     }catch(error){if(version===revision)status.textContent=error.message;}
   }
