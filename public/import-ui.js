@@ -3,8 +3,9 @@ if(form){
   const fields=form.elements,preview=document.getElementById('preview-import'),commit=document.getElementById('commit-import');
   const status=document.getElementById('import-status'),report=document.getElementById('import-report');
   let fingerprint='',rows=[],revision=0;
-  const phonePattern=/(?:\+?976[ -]?)?[1-9]\d{3}[ -]?\d{4}/g;
-  const phoneCount=value=>new Set((String(value??'').match(phonePattern)||[]).map(v=>v.replace(/\D/g,'').replace(/^976/,'')).filter(v=>/^[1-9]\d{7}$/.test(v))).size;
+  const phonePattern=/(?<!\d)(?:\+?976[ -]?)?[1-9]\d{3}[ -]?\d{4}(?!\d)/g;
+  const isDateLike=value=>/^\s*\d{4}[-/.]\d{1,2}[-/.]\d{1,2}(?:\s|$)/.test(String(value??''));
+  const phoneCount=value=>{const text=String(value??'');if(isDateLike(text))return 0;return new Set((text.match(phonePattern)||[]).map(v=>v.replace(/\D/g,'').replace(/^976/,'')).filter(v=>/^[1-9]\d{7}$/.test(v))).size;};
   const ticketValue=value=>{const t=String(value??'').trim();return !!t&&t.split(/[\s,;]+/).every(v=>/^\d+(?:\.0+)?$/.test(v)&&Number(v)>=1&&Number(v)<=1000000);};
   const cellText=cell=>!cell||cell.f||cell.F||cell.t==='e'?'':String(cell.w??cell.v??'').trim();
   function detectSheet(book,name){
@@ -25,7 +26,8 @@ if(form){
     if(ticketCol<0||phoneCol<0)return {name,count:0,reason:ticketCol<0?'Эрхийн дугаарын багана илрээгүй':'Утасны дугаарын багана илрээгүй'};
     const out=[];
     for(let i=0;i<matrix.length;i++){const row=matrix[i],ticket=String(row[ticketCol]||'').trim();if(!ticketValue(ticket))continue;
-      const identity=row.filter((_,c)=>c!==ticketCol).filter(Boolean).join(' | ');if(phoneCount(identity))out.push({ticket,identity});}
+      const identity=String(row[phoneCol]??'').trim();
+      if(phoneCount(identity))out.push({ticket,identity});}
     return {name,count:out.length,reason:out.length?'':'Шаардлага хангасан мөр олдсонгүй',rows:out,ticketCol,phoneCol};
   }
   async function inspectFile(file){
