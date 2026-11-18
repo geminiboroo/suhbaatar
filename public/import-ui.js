@@ -44,8 +44,8 @@ if(form){
       return String(value??'');
     };
     const start=Number(fields.start?.value??1),header=Number(fields.header?.value??0);
-    if(!Number.isInteger(start)||start<1||!Number.isInteger(header)||header<0||header>=start||!fields.phone?.value||
-      !fields.tickets?.value||fields.phone.value===fields.tickets.value)throw new Error('Мөр, утас болон эрхийн баганыг шалгана уу.');
+    if(!Number.isInteger(start)||start<1||!Number.isInteger(header)||header<0||header>=start||
+      !fields.tickets?.value)throw new Error('Мөр болон сугалааны эрхийн баганыг шалгана уу.');
     const table=book?.Sheets[fields.sheet.value];
     if(!table?.['!ref'])return [];
     const range=window.XLSX.utils.decode_range(table['!ref']);
@@ -55,9 +55,10 @@ if(form){
         const cell=table[window.XLSX.utils.encode_cell({r:row,c:Number(column)})];
         return cell?.f||cell?.F||cell?.t==='e'?'#INVALID_CELL':String(cell?.v??'');
       };
-      const phone=read(fields.phone.value),tickets=read(fields.tickets.value);
-      const dateValue=!fields.date?.value?'':dateCellValue(table,row,fields.date.value),amountValue=!fields.amount?.value?'':read(fields.amount.value);
-      if(phone.trim()||tickets.trim()||dateValue.trim()||amountValue.trim()||Array.from({length:range.e.c+1},(_,col)=>read(col)).some(value=>value.trim()))rows.push([row+1,phone.length<=500?phone:'',tickets,dateValue,amountValue]);
+      const tickets=read(fields.tickets.value);
+      const ignored=new Set([String(fields.tickets.value),String(fields.date?.value??''),String(fields.amount?.value??'')].filter(Boolean));
+      const identity=Array.from({length:range.e.c+1},(_,col)=>ignored.has(String(col))?'':read(col)).filter(value=>value.trim()).join(' | ');
+      if(identity.trim()||tickets.trim())rows.push([row+1,identity.slice(0,500),tickets,'','']);
     }
     return rows;
   }
