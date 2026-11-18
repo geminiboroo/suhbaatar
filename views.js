@@ -22,8 +22,8 @@ function lookup(campaignId=null,copy=defaultCopy){return `<section class="lookup
   <div class="phone-field"><input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" pattern="[0-9]{8}" maxlength="8" required></div>
   <button class="button gold" type="submit">${e(copy.lookupButton)}</button>
   <p id="lookup-status" role="status" hidden></p></form></div></section>`;}
-function shareFacebook(url,classes='button facebook-button'){
-  return `<a class="${classes}" href="https://www.facebook.com/sharer/sharer.php?u=${e(encodeURIComponent(url))}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook-д хуваалцах</a>`;
+function shareFacebook(url,classes='button facebook-button',copy=defaultCopy){
+  return `<a class="${classes}" href="https://www.facebook.com/sharer/sharer.php?u=${e(encodeURIComponent(url))}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span > ${e(copy.shareLabel)}</a>`;
 }
 function participantStats(c){
   const current=Number(c.participants)||0;
@@ -43,13 +43,13 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
     <h3><a href="/campaign/${e(c.slug)}">${e(c.title)}</a></h3><p class="description">${e(c.description)}</p>${copy.showPrice?`<p class="card-price">Нэг эрх: <strong>${money(c.price)}</strong></p>`:''}
     ${copy.showStats?displayStats(c):''}
     <div class="card-actions">${link('/campaign/'+c.slug,'Дэлгэрэнгүй →','button gold')}
-    ${shareFacebook(origin+'/campaign/'+c.slug)}</div></div></article>`;
+    ${copy.showShare?shareFacebook(origin+'/campaign/'+c.slug,'button facebook-button',copy):''}</div></div></article>`;
   const main=campaign?`<main id="content"><section class="wrap detail"><div>
     ${link('/#campaigns','← Бүх сугалаа','text-link')}<p class="eyebrow">ИДЭВХТЭЙ СУГАЛАА</p><h1>${e(campaign.title)}</h1>
     <p class="description">${e(campaign.description)}</p>${campaign.ends?'<p>'+date(campaign.ends)+' хүртэл</p>':''}
     ${copy.showPrice?`<p class="ticket-price">${e(copy.priceLabel)} <strong>${campaign.price?money(campaign.price):'Үнэ тохиролцоно'}</strong></p>`:''}
     ${copy.showStats?displayStats(campaign):''}
-    ${copy.showShare?shareFacebook(canonical):''}
+    ${copy.showShare?shareFacebook(canonical,'button facebook-button',copy):''}
     </div><div><img class="detail-image" src="${e(image)}" alt="">
     ${copy.showBank&&campaign.bank?`<section class="payment-card" aria-label="Төлбөр төлөх дансны мэдээлэл"><div class="bank-brand">${campaign.logo?`<img class="bank-logo-image" src="${e(campaign.logo)}" alt="${e(campaign.provider||campaign.bank)}">`:'<span class="bank-logo-mark">K</span>'}<span><strong>${e(campaign.provider||campaign.bank||'ХААН БАНК')}</strong><small>ТӨЛБӨР ТӨЛӨХ ДАНС</small></span></div><dl>${campaign.account?`<div><dt>💳 ДАНС</dt><dd>${e(campaign.account)}</dd></div>`:''}${campaign.iban?`<div><dt>💳 IBAN</dt><dd>${e(campaign.iban)}</dd></div>`:''}${campaign.holder?`<div><dt>👤 ЭЗЭМШИГЧ</dt><dd>${e(campaign.holder)}</dd></div>`:''}<div><dt>📝 ГҮЙЛГЭЭНИЙ УТГА</dt><dd>${e(copy.bankMemo)} 📱</dd></div></dl><p class="payment-note">${e(copy.bankNote)}</p></section>`:''}
     ${lookup(campaign.id,copy)}</div></section></main>`:
@@ -68,7 +68,7 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
       <details class="site-help" id="help"><summary>${e(copy.helpTitle)}</summary><p>${e(copy.helpText)}</p></details>
       </div></section></main>`;
   return doc(title,`<a class="skip" href="#content">Үндсэн агуулга</a><header class="top"><div class="wrap nav">${publicBrand}
-    <nav aria-label="Үндсэн цэс"><a href="/" ${campaign?'':'aria-current="page"'}>Нүүр</a><a href="/#campaigns">Сугалаа</a><a href="#lookup">ЭРХ ШАЛГАХ</a><a href="/#help">Тусламж</a>${facebook?'<a href="#contact">Холбоо барих</a>':''}</nav>
+    <nav aria-label="Үндсэн цэс"><a href="/" ${campaign?'':'aria-current="page"'}>Нүүр</a><a href="/#campaigns">Сугалаа</a><a href="#lookup">ЭРХ ШАЛГАХ</a><a href="/#help">Тусламж</a>${copy.showContact&&facebook?'<a href="#contact">Холбоо барих</a>':''}</nav>
     </div></header>${main}<footer id="contact"><div class="wrap row">${publicBrand}<div class="contact-actions">${facebook?`<h2>Холбоо барих</h2><a class="button facebook-button" href="${e(facebook)}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook</a>`:''}${shareFacebook(canonical)}</div></div></footer>`,
     {meta:meta+'<link rel="icon" href="/horse-mark.webp" type="image/webp">',className:campaign?'race-site race-detail':'race-site',scripts:'<script src="/public-ui.js" defer></script>'});
 }
