@@ -119,10 +119,12 @@ async function route(req,env){
     if(body.campaign&&!campaignId)fail('Сугалаагаа шалгана уу.');
     await rate(db,req,'lookup',30,600);
     const found=await all(`SELECT c.id campaign_id,c.title,c.slug,l.number ticket_number
-      FROM participants p JOIN transactions t ON t.participant_id=p.id
+      FROM participant_phones pp
+      JOIN transactions t ON t.participant_id=pp.participant_id
       JOIN lottery_tickets l ON l.transaction_id=t.id JOIN campaigns c ON c.id=l.campaign_id
-      WHERE p.phone=?1 AND t.status='confirmed' AND c.public AND NOT c.archived
+      WHERE pp.phone=?1 AND t.status='confirmed' AND c.public AND NOT c.archived
       AND (?2=0 OR c.id=?2)
+      GROUP BY c.id,l.number
       ORDER BY c.id DESC,l.number ASC`,phone,campaignId);
     const grouped=new Map();
     for(const row of found){if(!grouped.has(row.campaign_id))grouped.set(row.campaign_id,{id:row.campaign_id,title:row.title,slug:row.slug,tickets:[]});grouped.get(row.campaign_id).tickets.push({number:row.ticket_number});}
