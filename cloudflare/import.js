@@ -40,7 +40,6 @@ export async function importTickets(db,body,admin,session,mode){
       if(!phones.length) throw new Error('Гүйлгээний утга эсвэл мөрийн бусад баганаас 8 оронтой утасны дугаар олдсонгүй');
       const requested=ticketNumbers(rawTickets);
       if(!requested.length) throw new Error('Эрхийн дугаар оруулаагүй байна');
-      if(requested.some(n=>n>campaign.total)) throw new Error('Эрхийн багтаамж эсвэл дугаарын хязгаар зөрсөн');
       const unique=[...new Set(requested)];
       const skippedInRow=requested.length-unique.length;
       tickets=unique.filter(n=>!used.has(n));
