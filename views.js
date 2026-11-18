@@ -69,7 +69,7 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
       </div></section></main>`;
   return doc(title,`<a class="skip" href="#content">Үндсэн агуулга</a><header class="top"><div class="wrap nav">${publicBrand}
     <nav aria-label="Үндсэн цэс"><a href="/" ${campaign?'':'aria-current="page"'}>${e(copy.navHome)}</a><a href="/#campaigns">${e(copy.navCampaigns)}</a><a href="#lookup">${e(copy.navLookup)}</a><a href="/#help">${e(copy.navHelp)}</a>${copy.showContact&&facebook?'<a href="#contact">Холбоо барих</a>':''}</nav>
-    </div></header>${main}<footer id="contact"><div class="wrap row">${publicBrand}<div class="contact-actions">${facebook?`<h2>Холбоо барих</h2><a class="button facebook-button" href="${e(facebook)}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook</a>`:''}${shareFacebook(canonical)}</div></div></footer>`,
+    </div></header>${main}<footer id="contact"><div class="wrap row">${publicBrand}<div class="contact-actions">${facebook?`<h2>Холбоо барих</h2><a class="button facebook-button" href="${e(facebook)}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook</a>`:''}</div></div></footer>`,
     {meta:meta+'<link rel="icon" href="/horse-mark.webp" type="image/webp">',className:campaign?'race-site race-detail':'race-site',scripts:'<script src="/public-ui.js" defer></script>'});
 }
 function consolePage(title,html,scripts=''){
