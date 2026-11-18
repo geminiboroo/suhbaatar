@@ -53,7 +53,7 @@ export async function importTickets(db,body,admin,session,mode){
       else{
         for(const n of tickets)used.add(n);
         summary.tickets+=tickets.length;
-        if(skipped)reason=skipped+' давхардсан дугаарыг алгасаж, шинэ эрхүүдийг импортлоно';
+        if(skipped)reason=skipped+' давхардсан дугаарыг тооцоогүй, '+tickets.length+' шинэ эрхийг нэмнэ';
       }
     } catch(error){status='invalid';reason=error.message;}
     summary.rows++;
