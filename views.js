@@ -14,11 +14,11 @@ const displayStats=c=>`<dl class="campaign-stats">${[['Оролцогч',c.parti
 const siteName='СҮХБААТАРЫН ХУРД — СУГАЛААТ ХУДАЛДАА';
 const publicBrand=`<a class="race-brand" href="/" aria-label="${siteName} · Нүүр хуудас"><img class="race-emblem" src="/horse-mark.webp" width="56" height="56" alt=""><span>СҮХБААТАРЫН<strong>ХУРД</strong></span></a>`;
 const lookup=`<section class="lookup-card" id="lookup" aria-labelledby="lookup-title">
-  <div class="lookup-content"><h2 id="lookup-title">Эрхээ шалгах</h2>
+  <div class="lookup-content"><h2 id="lookup-title">ЭРХ ШАЛГАХ</h2>
   <p>Бүртгүүлсэн утасны 8 оронтой дугаараа оруулна уу.</p>
   <form id="lookup-form" class="lookup-form"><label for="phone">Утасны дугаар</label>
   <div class="phone-field"><input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" pattern="[0-9]{8}" maxlength="8" required></div>
-  <button class="button gold" type="submit">Эрхээ шалгах</button>
+  <button class="button gold" type="submit">ЭРХ ШАЛГАХ</button>
   <p id="lookup-status" role="status" hidden></p></form></div></section>`;
 function shareFacebook(url,classes='button facebook-button'){
   return `<a class="${classes}" href="https://www.facebook.com/sharer/sharer.php?u=${e(encodeURIComponent(url))}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook-д хуваалцах</a>`;
@@ -51,19 +51,18 @@ export function home({campaigns,campaign,origin,facebook}){
       <h1>СҮХБААТАРЫН<br><em>ХУРД</em></h1>
       <p class="hero-tagline">СУГАЛААТ ХУДАЛДАА</p>
       <p class="hero-intro">Сүхбаатар нутгийн хурдан хүлгийн сугалаануудтай танилцаж, бүртгүүлсэн эрхээ шалгаарай.</p>
-      <div class="actions">${link('#lookup','Эрхээ шалгах →','button gold')}</div>
     </div>${lookup}</div></section>
     <nav class="hero-rail" aria-label="Шуурхай холбоос"><div class="wrap">
       <a href="#campaigns"><img src="/horse-mark.webp" width="26" height="26" alt=""> Идэвхтэй сугалаа</a>
-      <a href="#lookup"><span aria-hidden="true">▥</span> Эрхээ шалгах</a>
+      <a href="#lookup"><span aria-hidden="true">▥</span> ЭРХ ШАЛГАХ</a>
       <a href="#help"><span aria-hidden="true">?</span> Хэрхэн шалгах вэ?</a>
     </div></nav>
     <section class="campaigns" id="campaigns"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">ОНЦЛОХ СУГАЛАА</p><h2>Идэвхтэй <em>сугалаанууд</em></h2><p>Сүхбаатарын хурдын нэрэмжит сугалаанууд</p></div></div>
-      ${campaigns.length?`<div class="cards">${campaigns.map(card).join('')}</div>`:`<div class="empty"><h3>Одоогоор идэвхтэй сугалаа алга</h3><p>Өмнө бүртгүүлсэн эрхээ утасны дугаараар шалгах боломжтой.</p>${link('#lookup','Эрх шалгах →','text-link')}</div>`}
-      <details class="site-help" id="help"><summary>Сугалааны эрхээ хэрхэн шалгах вэ?</summary><p>«Эрхээ шалгах» хэсэгт сугалаанд бүртгүүлсэн утасны 8 оронтой дугаараа оруулаад «Эрхээ шалгах» товчийг дарна.</p></details>
+      ${campaigns.length?`<div class="cards">${campaigns.map(card).join('')}</div>`:`<div class="empty"><h3>Одоогоор идэвхтэй сугалаа алга</h3><p>Өмнө бүртгүүлсэн эрхээ утасны дугаараар шалгах боломжтой.</p>${link('#lookup','ЭРХ ШАЛГАХ →','text-link')}</div>`}
+      <details class="site-help" id="help"><summary>Сугалааны эрхээ хэрхэн шалгах вэ?</summary><p>«ЭРХ ШАЛГАХ» хэсэгт сугалаанд бүртгүүлсэн утасны 8 оронтой дугаараа оруулаад «ЭРХ ШАЛГАХ» товчийг дарна.</p></details>
       </div></section></main>`;
   return doc(title,`<a class="skip" href="#content">Үндсэн агуулга</a><header class="top"><div class="wrap nav">${publicBrand}
-    <nav aria-label="Үндсэн цэс"><a href="/" ${campaign?'':'aria-current="page"'}>Нүүр</a><a href="/#campaigns">Сугалаа</a><a href="#lookup">Эрхээ шалгах</a><a href="/#help">Тусламж</a>${facebook?'<a href="#contact">Холбоо барих</a>':''}</nav>
+    <nav aria-label="Үндсэн цэс"><a href="/" ${campaign?'':'aria-current="page"'}>Нүүр</a><a href="/#campaigns">Сугалаа</a><a href="#lookup">ЭРХ ШАЛГАХ</a><a href="/#help">Тусламж</a>${facebook?'<a href="#contact">Холбоо барих</a>':''}</nav>
     </div></header>${main}<footer id="contact"><div class="wrap row">${publicBrand}<div class="contact-actions">${facebook?`<h2>Холбоо барих</h2><a class="button facebook-button" href="${e(facebook)}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook</a>`:''}${shareFacebook(canonical)}</div></div></footer>`,
     {meta:meta+'<link rel="icon" href="/horse-mark.webp" type="image/webp">',className:campaign?'race-site race-detail':'race-site',scripts:'<script src="/public-ui.js" defer></script>'});
 }
