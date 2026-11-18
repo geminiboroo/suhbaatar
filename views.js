@@ -30,7 +30,7 @@ function participantStats(c){
   const goal=Number(c.participant_goal)||0;
   return `<div class="participant-stats"><dl><div><dt>Одоо бүртгүүлсэн</dt><dd>${fmt(current)}</dd></div><div><dt>Зорилтот оролцогч</dt><dd>${goal?fmt(goal):'—'}</dd></div></dl>${goal?`<progress value="${Math.min(current,goal)}" max="${goal}" aria-label="Оролцогчдын зорилтын явц"></progress>`:''}</div>`;
 }
-export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
+export function home({campaigns,campaign,origin,facebook,facebookLive='',copy:rawCopy}){
   const copy=copyOf(rawCopy);
   const canonical=origin+(campaign?'/campaign/'+campaign.slug:'/');
   const title=campaign?`${campaign.title} | ${siteName}`:siteName;
@@ -43,7 +43,10 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
     <h3><a href="/campaign/${e(c.slug)}">${e(c.title)}</a></h3><p class="description">${e(c.description)}</p>${copy.showPrice&&c.price?`<p class="card-price">Нэг эрх: <strong>${money(c.price)}</strong></p>`:''}
     ${copy.showStats?displayStats(c):''}
     <div class="card-actions">${link('/campaign/'+c.slug,copy.detailLabel,'button gold')}
-    ${copy.showShare?shareFacebook(origin+'/campaign/'+c.slug,'button facebook-button',copy):''}</div></div></article>`;
+    ${copy.showShare?shareFacebook(origin+'/campaign/'+c.slug,'button facebook-button',copy):''}
+    ${copy.showBank&&c.account?'<button type="button" class="button account-copy" data-copy-account="'+e(c.account)+'">Данс хуулах</button>':''}</div>
+    ${copy.showBank&&c.account?'<p class="bank-mini-details">Данс: '+e(c.account)+' · Гүйлгээний утга: '+e(copy.bankMemo)+'</p>':''}
+    </div></article>`;
   const main=campaign?`<main id="content"><section class="wrap detail"><div>
     ${link('/#campaigns','← Бүх сугалаа','text-link')}<p class="eyebrow">ИДЭВХТЭЙ СУГАЛАА</p><h1>${e(campaign.title)}</h1>
     <p class="description">${e(campaign.description)}</p>${campaign.ends?'<p>'+date(campaign.ends)+' хүртэл</p>':''}
@@ -57,6 +60,7 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
       <h1>${e(copy.heroTitle)}<br><em>${e(copy.heroBrand)}</em></h1>
       <p class="hero-tagline">${e(copy.heroTagline)}</p>
       <p class="hero-intro">${e(copy.heroIntro)}</p>
+      <a class="live-button ${facebookLive?'is-live':'is-disabled'}" ${facebookLive?'href="'+e(facebookLive)+'" target="_blank" rel="noopener noreferrer"':'aria-disabled="true" tabindex="-1"'}><span class="live-dot"></span> LIVE ҮЗЭХ <small>${facebookLive?'ШУУД ДАМЖУУЛАЛТ':'ОДОО LIVE АЛГА'}</small></a>
     </div>${lookup(null,copy)}</div></section>
     <nav class="hero-rail" aria-label="Шуурхай холбоос"><div class="wrap">
       <a href="#campaigns"><img src="/horse-mark.webp" width="26" height="26" alt="" > ${e(copy.railCampaigns)}</a>
@@ -87,7 +91,7 @@ export function login(error=''){
     <button class="button gold">Нэвтрэх →</button></form>${link('/','← Нүүр хуудас','text-link')}</div></main>`);
 }
 const options=(items,selected)=>items.map(([value,label])=>`<option value="${e(value)}"${String(value)===String(selected)?' selected':''}>${e(label)}</option>`).join('');
-export function admin(campaigns,stats,logs,batches,facebook,owner,edge=false,rawCopy={}){
+export function admin(campaigns,stats,logs,batches,facebook,facebookLive,owner,edge=false,rawCopy={}){
   const copy=copyOf(rawCopy);
   return consolePage('Удирдлагын самбар',`<dl class="admin-stats">${[['Нийт сугалаа',campaigns.length],['Идэвхтэй',stats.active],['Нийт эрхийн тоо',stats.sold],['Борлуулсан эрх',stats.sold],['Гүйлгээ',stats.transactions],['Баталгаажсан',stats.confirmed],['Хүлээгдэж буй',stats.pending],['Нийт орлого',money(stats.revenue)]].map(([label,value])=>`<div><dt>${label}</dt><dd>${typeof value==='string'&&value.includes('₮')?e(value):fmt(value)}</dd></div>`).join('')}</dl>
     <section class="panel"><div class="row"><h2>Сугалаанууд</h2>${owner?link('/admin/campaigns/new','Сугалаа үүсгэх','button gold'):''}</div>
@@ -105,7 +109,7 @@ export function admin(campaigns,stats,logs,batches,facebook,owner,edge=false,raw
       <p id="import-status" class="full" role="status"></p><div id="import-report" class="full"></div></form>`:'<p>Эхлээд сугалаа үүсгэнэ үү.</p>'}
       ${batches.length?`<h3>Импортын түүх</h3><div class="table-scroll"><table><thead><tr><th>Багц</th><th>Сугалаа</th><th>Огноо</th><th>Зөв / алдаа / давхардал</th><th>Эрх</th><th>Үйлдэл</th></tr></thead><tbody>${batches.map(b=>`<tr><td>${link('/admin/imports/'+b.id,'#'+b.id,'text-link')}</td><td>${e(b.title)}</td><td>${date(b.created_at)}</td><td>${b.summary.valid||0} / ${b.summary.invalid||0} / ${b.summary.duplicate||0}</td><td>${b.summary.tickets||0}</td><td>${b.rolled_back_at?'Буцаасан':`<form method="post" action="/admin/imports/${b.id}/rollback" data-confirm="Энэ багцын бүх гүйлгээ, эрхийг буцаах уу?"><button class="text-button">Буцаах</button></form>`}</td></tr>`).join('')}</tbody></table></div>`:''}</section>
     <section class="panel"><h2>Сүүлийн үйлдлүүд</h2>${logs.length?`<ul class="logs">${logs.map(l=>`<li><strong>${e(l.action)}</strong> · ${e(l.target)} <time>${date(l.created_at)}</time></li>`).join('')}</ul>`:'<p>Үйлдэл бүртгэгдээгүй байна.</p>'}</section>
-    ${owner?`<section class="panel"><h2>Сайтын тохиргоо — текст ба харагдах байдал</h2><form method="post" action="/admin/site" class="form-grid">${field('Facebook хуудасны холбоос','facebook',facebook,'url')}
+    ${owner?`<section class="panel"><h2>Сайтын тохиргоо — текст ба харагдах байдал</h2><form method="post" action="/admin/site" class="form-grid">${field('Facebook хуудасны холбоос','facebook',facebook,'url')}${field('Facebook LIVE холбоос (шууд дамжуулалт эхлэх үед нэмнэ)','facebookLive',facebookLive,'url')}
     <fieldset class="full form-grid"><legend>Сайтын текстүүд (эндээс өөрчилнө)</legend>${field('Нүүр гарчиг','heroTitle',copy.heroTitle)}${field('Том гарчиг','heroBrand',copy.heroBrand)}${field('Уриа','heroTagline',copy.heroTagline)}<label class="full">Нүүр тайлбар<textarea name="heroIntro">${e(copy.heroIntro)}</textarea></label>${field('Эрх шалгах гарчиг','lookupTitle',copy.lookupTitle)}${field('Утасны талбар','phoneLabel',copy.phoneLabel)}<label class="full">Эрх шалгах тайлбар<textarea name="lookupHelp">${e(copy.lookupHelp)}</textarea></label>${field('Эрх шалгах товч','lookupButton',copy.lookupButton)}${field('Сугалааны гарчиг','campaignHeading',copy.campaignHeading)}<label class="full">Сугалааны тайлбар<textarea name="campaignIntro">${e(copy.campaignIntro)}</textarea></label>${field('Тусламжийн гарчиг','helpTitle',copy.helpTitle)}<label class="full">Тусламжийн текст<textarea name="helpText">${e(copy.helpText)}</textarea></label>${field('Үнэний гарчиг','priceLabel',copy.priceLabel)}${field('Facebook share товч','shareLabel',copy.shareLabel)}${field('Холбоо барих гарчиг','contactLabel',copy.contactLabel)}${field('Цэс: Нүүр','navHome',copy.navHome)}${field('Цэс: Сугалаа','navCampaigns',copy.navCampaigns)}${field('Цэс: Эрх шалгах','navLookup',copy.navLookup)}${field('Цэс: Тусламж','navHelp',copy.navHelp)}${field('Шуурхай холбоос: Сугалаа','railCampaigns',copy.railCampaigns)}${field('Шуурхай холбоос: Эрх шалгах','railLookup',copy.railLookup)}${field('Шуурхай холбоос: Тусламж','railHelp',copy.railHelp)}${field('Сугалаа байхгүй үеийн гарчиг','noCampaignTitle',copy.noCampaignTitle)}<label class="full">Сугалаа байхгүй үеийн тайлбар<textarea name="noCampaignText">${e(copy.noCampaignText)}</textarea></label>${field('Дэлгэрэнгүй товч','detailLabel',copy.detailLabel)}${field('Гүйлгээний утга','bankMemo',copy.bankMemo)}<label class="full">Банкны тайлбар<textarea name="bankNote">${e(copy.bankNote)}</textarea></label></fieldset>
     <fieldset class="full form-grid"><legend>Харагдах / нуух</legend>${check('Эрхийн үнэ харуулах','showPrice',copy.showPrice)}${check('Эрхийн тоо, үлдэгдэл, явц харуулах','showStats',copy.showStats)}${check('Банкны данс харуулах','showBank',copy.showBank)}${check('Facebook share харуулах','showShare',copy.showShare)}${check('Холбоо барих харуулах','showContact',copy.showContact)}</fieldset><div class="full"><button class="button secondary">Тохиргоо хадгалах</button></div></form></section>`:''}
     <details class="panel"><summary>Нууц үг солих</summary><form method="post" action="/admin/password" class="form-grid">
