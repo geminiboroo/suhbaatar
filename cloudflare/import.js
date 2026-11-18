@@ -11,8 +11,8 @@ function phoneFromMemo(value){
 }
 export function ticketNumbers(value){
   if(!String(value??'').trim()) return [];
-  const fields=String(value).trim().split(/[\\s,;]+/);
-  if(fields.length>5000 || fields.some(x=>!/^[0-9]+(?:\\.0+)?$/.test(x))) throw new Error('Эрхийн дугаарын формат буруу');
+  const fields=String(value).trim().split(/[\s,;]+/);
+  if(fields.length>5000 || fields.some(x=>!/^\d+(?:\.0+)?$/.test(x))) throw new Error('Эрхийн дугаарын формат буруу');
   const numbers=fields.map(Number);
   if(numbers.some(x=>!Number.isSafeInteger(x)||x<1||x>1000000)) throw new Error('Эрхийн дугаар 1–1,000,000 хооронд байх ёстой');
   return numbers;
