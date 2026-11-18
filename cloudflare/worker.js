@@ -244,7 +244,7 @@ async function route(req,env){
       statements.push(stmt('INSERT OR IGNORE INTO images VALUES (?1,?2,?3)',mediaId,mime,bytes.buffer));
       image='/media/'+mediaId;
     }
-    const values=[slug,title,description,image,total,Number(body.active==='on'),Number(body.public==='on'),starts,ends,goal,price];
+    const values=[slug,title,description,image,total,Number(body.active==='on'),Number(body.public==='on'),starts,ends,null,price];
     if(id){
       statements.push(stmt('UPDATE campaigns SET (slug,title,description,image,total,active,public,starts,ends,participant_goal,price)=(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11),revision=revision+1 WHERE id=?12 AND NOT archived',...values,id));
       statements.push(stmt('INSERT INTO bank_accounts(campaign_id,bank,holder,account,iban,logo,provider) VALUES (?1,?2,?3,?4,?5,?6,?7) ON CONFLICT(campaign_id) DO UPDATE SET bank=excluded.bank,holder=excluded.holder,account=excluded.account,iban=excluded.iban,logo=excluded.logo,provider=excluded.provider',id,bank,holder,account,iban,logo,provider));
