@@ -135,3 +135,97 @@
   .race-site .hero-copy { max-width:80%; }
   .race-site .hero .lookup-card { width:min(100%,330px); left:0; bottom:1rem; }
 }
+
+
+/* Hero refresh: large, clear eligibility card on the image side. */
+@media (min-width: 901px) {
+  .race-site .hero {
+    min-height: clamp(650px, 56vw, 790px);
+    background-position: center 48%;
+  }
+  .race-site .hero:before {
+    background:
+      linear-gradient(90deg, #04162bdc 0%, #04162b9c 38%, #04162b18 72%),
+      linear-gradient(0deg, #05142a9c, transparent 42%);
+  }
+  .race-site .hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(390px, 43%);
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 3.2rem);
+    min-height: 0;
+  }
+  .race-site .hero-copy {
+    max-width: 100%;
+    padding: 1.2rem 0;
+  }
+  .race-site .hero-copy > .hero-tagline {
+    font-size: clamp(1.15rem, 2vw, 1.55rem);
+    font-weight: 900;
+    text-shadow: 0 2px 12px #000b;
+  }
+  .race-site .hero-copy > .hero-intro {
+    max-width: 31rem;
+    font-size: clamp(1rem, 1.25vw, 1.15rem);
+    text-shadow: 0 2px 10px #000b;
+  }
+  .race-site .hero .lookup-card {
+    position: relative;
+    inset: auto;
+    align-self: center;
+    width: 100%;
+    max-width: 490px;
+    margin: 0 0 0 auto;
+    transform: none;
+    background: rgba(250, 248, 242, .97);
+    border: 2px solid #f6ca70;
+    border-radius: 22px;
+    box-shadow: 0 24px 65px #020b1acc, 0 0 0 6px #f6ca7022;
+  }
+  .race-site .hero .lookup-content {
+    padding: clamp(1.5rem, 2.5vw, 2.35rem);
+  }
+  .race-site .hero .lookup-content h2 {
+    font-size: clamp(2rem, 3vw, 2.7rem);
+    color: #07192f;
+  }
+  .race-site .hero .lookup-content > p {
+    font-size: 1rem;
+    color: #34445a;
+  }
+  .race-site .hero .lookup-form label {
+    font-size: 1rem;
+    font-weight: 750;
+    color: #17263a;
+  }
+  .race-site .hero .lookup-content .phone-field input {
+    min-height: 58px;
+    font-size: 1.35rem;
+    letter-spacing: .08em;
+  }
+  .race-site .hero .lookup-content .lookup-form .button {
+    min-height: 58px;
+    font-size: 1.05rem;
+  }
+}
+@media (max-width: 900px) {
+  .race-site .hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    min-height: 0;
+  }
+  .race-site .hero-copy { max-width: min(100%, 34rem); }
+  .race-site .hero .lookup-card {
+    position: relative;
+    inset: auto;
+    width: min(100%, 440px);
+    margin: .5rem 0 0;
+    transform: none;
+  }
+}
+@media (max-width: 650px) {
+  .race-site .hero { padding-top: 7.5rem; }
+  .race-site .hero-layout { gap: .75rem; }
+  .race-site .hero .lookup-card { width: 100%; max-width: none; }
+}
