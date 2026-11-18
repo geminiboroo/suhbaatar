@@ -188,7 +188,7 @@ async function route(req,env){
     const body=await readBody(req);
     const facebook=httpsUrl(field(body,'facebook',2048));
     if(facebook&&!['www.facebook.com','facebook.com','m.facebook.com','fb.com','fb.me','m.me'].includes(new URL(facebook).hostname)) fail('Facebook холбоос оруулна уу');
-    const keys=['heroTitle','heroBrand','heroTagline','heroIntro','lookupTitle','lookupHelp','lookupButton','phoneLabel','campaignHeading','campaignIntro','helpTitle','helpText','priceLabel','shareLabel','contactLabel','bankMemo','bankNote'];
+    const keys=['heroTitle','heroBrand','heroTagline','heroIntro','lookupTitle','lookupHelp','lookupButton','phoneLabel','campaignHeading','campaignIntro','helpTitle','helpText','priceLabel','shareLabel','contactLabel','navHome','navCampaigns','navLookup','navHelp','railCampaigns','railLookup','railHelp','noCampaignTitle','noCampaignText','detailLabel','bankMemo','bankNote'];
     const copy={};for(const key of keys)copy[key]=field(body,key,1200);
     for(const key of ['showPrice','showStats','showBank','showShare','showContact'])copy[key]=body[key]==='on';
     await db.batch([stmt("INSERT INTO site_settings VALUES ('facebook',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",facebook),stmt("INSERT INTO site_settings VALUES ('copy',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",JSON.stringify(copy)),audit(admin.id,'site.updated','copy')]);
