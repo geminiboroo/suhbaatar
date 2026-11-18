@@ -40,7 +40,7 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
   const card=(c,index)=>`<article class="campaign-card">
     <img class="cover" src="${e(c.image||'/campaign-'+(index%3+1)+'.webp')}" alt="" loading="lazy">
     <div class="card-body">
-    <h3><a href="/campaign/${e(c.slug)}">${e(c.title)}</a></h3><p class="description">${e(c.description)}</p>${copy.showPrice?`<p class="card-price">Нэг эрх: <strong>${money(c.price)}</strong></p>`:''}
+    <h3><a href="/campaign/${e(c.slug)}">${e(c.title)}</a></h3><p class="description">${e(c.description)}</p>${copy.showPrice&&c.price?`<p class="card-price">Нэг эрх: <strong>${money(c.price)}</strong></p>`:''}
     ${copy.showStats?displayStats(c):''}
     <div class="card-actions">${link('/campaign/'+c.slug,'Дэлгэрэнгүй →','button gold')}
     ${copy.showShare?shareFacebook(origin+'/campaign/'+c.slug,'button facebook-button',copy):''}</div></div></article>`;
@@ -132,7 +132,7 @@ export function campaignForm(c){
     <input type="hidden" name="active" value="off"><input type="hidden" name="public" value="off">
     ${check('Сугалааг нээх','active',c.id?c.active:true)}${check('Нийтэд харуулах','public',c.id?c.public:true)}
     <fieldset class="full form-grid bank-fields"><legend>Төлбөр хүлээн авах данс (энэ сугалаанд)</legend>
-    ${field('Банк','bank',c.bank||'ХААН БАНК')}${field('Эзэмшигч','holder',c.holder||'ГОНГОРЖАВ')}${field('Дансны дугаар','account',c.account||'5637213181')}${field('IBAN','iban',c.iban||'93000500')}${field('Банкны логоны HTTPS холбоос (сонголтоор)','logo',c.logo,'url')}<label class="full">Банкны лого upload<input type="file" name="bankLogo" accept="image/jpeg,image/png,image/webp"></label>${field('Дэлгэцэд харагдах банкны нэр','provider',c.provider||'ХААН БАНК')}</fieldset>
+    ${field('Банк','bank',c.bank||'ХААН БАНК')}${field('Эзэмшигч','holder',c.holder||'ГОНГОРЖАВ')}${field('Дансны дугаар','account',c.account||'5637213181')}${field('IBAN','iban',c.iban||'93000500')}${field('Банкны логоны HTTPS холбоос (сонголтоор)','logo',c.logo,'text')}<label class="full">Банкны лого upload<input type="file" name="bankLogo" accept="image/jpeg,image/png,image/webp"></label>${field('Дэлгэцэд харагдах банкны нэр','provider',c.provider||'ХААН БАНК')}</fieldset>
     <div class="actions full"><button class="button gold">Хадгалах</button>${link('/admin','Буцах','button secondary')}</div>
     </form>${c.id?`<div class="campaign-danger-actions"><form method="post" action="/admin/campaigns/${c.id}/delete" data-confirm="Сугалааг архивлаж, нийтээс нуух уу? Өгөгдөл хадгалагдана."><button class="button secondary">Архивлах (өгөгдөл хадгална)</button></form><form method="post" action="/admin/campaigns/${c.id}/hard-delete" data-confirm="Зөвхөн гүйлгээ, эрх бүртгэгдээгүй сугалааг бүрмөсөн устгана. Үргэлжлүүлэх үү?"><button class="button danger">Бүрмөсөн устгах</button></form></div>`:''}`,'<script src="/confirm.js" defer></script>');
 }
