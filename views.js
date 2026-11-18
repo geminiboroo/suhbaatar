@@ -103,7 +103,7 @@ export function admin(campaigns,stats,logs,batches,facebook,facebookLive,owner,e
       <fieldset id="mapping" class="form-grid full" hidden><legend>Мөр ба баганын тохиргоо</legend>
         <input type="hidden" name="mode" value="tickets"><label>Хуудас<select name="sheet"></select></label>
         ${field('Толгойн мөр (байхгүй бол 0)','header',0,'number','min="0" max="9999"')}${field('Эхлэх мөр','start',1,'number','required min="1" max="10000"')}
-        ${[['phone','Утасны дугаар'],['tickets','Эрхийн дугаар']].map(([name,label])=>`<label>${label}<select name="${name}"></select></label>`).join('')}
+        ${[['phone','Утас / гүйлгээний утга'],['tickets','Сугалааны эрхийн дугаар'],['date','Гүйлгээний огноо (сонголтоор)'],['amount','Гүйлгээний дүн (сонголтоор)']].map(([name,label])=>`<label>${label}<select name="${name}"></select></label>`).join('')}
 
         <div id="sample-data" class="table-scroll full"></div></fieldset>
       <div class="actions full"><button type="submit" class="button gold" id="preview-import" disabled>Урьдчилж шалгах</button><button type="button" class="button secondary" id="commit-import" hidden>Импорт батлах</button></div>
