@@ -305,3 +305,16 @@
   .campaign-danger-actions form { width:100%; }
   .campaign-danger-actions button { width:100%; }
 }
+
+/* Mobile-friendly sharing, contact and bank logo upload presentation. */
+.race-site .contact-actions { width:100%; justify-content:center; gap:.6rem; }
+.race-site .contact-actions .button { min-height:46px; display:inline-flex; align-items:center; justify-content:center; padding:.7rem 1rem; }
+.race-site .card-actions { grid-template-columns:1fr; }
+.race-site .facebook-button { min-height:46px; white-space:normal; text-align:center; line-height:1.25; }
+.bank-logo-image { width:64px; height:64px; padding:5px; background:#fff; border:1px solid #e1e7e3; border-radius:12px; }
+@media(max-width:650px) {
+ .race-site footer .row { display:flex; flex-direction:column; align-items:flex-start; gap:1rem; }
+ .race-site .contact-actions { display:grid; grid-template-columns:1fr; width:100%; justify-content:stretch; }
+ .race-site .contact-actions .button { width:100%; }
+ .race-site .card-actions { gap:.65rem; }
+}
