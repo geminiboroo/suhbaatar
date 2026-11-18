@@ -660,3 +660,26 @@
 .race-site .sold-out-stamp-large span{font-size:clamp(1.8rem,3vw,2.6rem)}
 .race-site .sold-out-stamp-large strong{font-size:clamp(1.15rem,2vw,1.55rem)}
 @media(max-width:700px){.race-site .campaign-image-wrap{height:220px}.race-site .sold-out-stamp{width:96px;height:96px;top:12px;right:12px}.race-site .sold-out-stamp span{font-size:1.4rem}.race-site .sold-out-stamp strong{font-size:.9rem}.race-site .sold-out-stamp-large{width:112px;height:112px}}
+
+
+/* Clear ticket lookup: group by payment transaction, emphasize ticket numbers. */
+.race-site .lookup-total{display:block;margin:0 0 12px;padding:14px 16px;border:1px solid #c7a45e;border-radius:12px;background:#fff8e8;color:#173b2b;font-size:1.15rem;font-weight:900}
+.race-site .lookup-campaign-result{padding:clamp(14px,2.5vw,22px);margin-top:14px;background:#10283a;border:1px solid #45647b;border-radius:15px}
+.race-site .lookup-campaign-heading{padding-bottom:12px;border-bottom:1px solid #ffffff25;font-size:1rem}
+.race-site .lookup-campaign-heading>strong{font-size:1.05rem;line-height:1.35}
+.race-site .lookup-campaign-heading>span{flex:none;padding:5px 10px;border-radius:999px;background:#f4d18a;color:#183044;font-weight:900}
+.race-site .lookup-transaction{margin-top:13px;padding:14px;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08}
+.race-site .lookup-transaction-meta{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px}
+.race-site .lookup-transaction-meta>span{grid-column:1/-1;color:#aebfcb;font-size:.68rem;font-weight:850;letter-spacing:.1em}
+.race-site .lookup-transaction-meta>strong{color:#fff;font-size:.94rem;font-variant-numeric:tabular-nums}
+.race-site .lookup-transaction-meta>.lookup-transaction-amount{grid-column:2;grid-row:2;color:#f5d58e;font-size:1rem;white-space:nowrap}
+.race-site .lookup-numbers-label{margin:14px 0 8px;color:#d2dfdf;font-size:.72rem;font-weight:850;letter-spacing:.055em}
+.race-site .lookup-number-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.race-site .lookup-number-chip{display:grid;place-items:center;min-height:46px;padding:7px 5px;border:1px solid #d7b66e;border-radius:8px;background:linear-gradient(145deg,#fff5d9,#e9ce8f);color:#172d27;font-size:1.05rem;font-weight:950;font-variant-numeric:tabular-nums;letter-spacing:.035em;box-shadow:0 2px 0 #98733b}
+@media(max-width:520px){
+ .race-site .lookup-transaction{padding:11px}
+ .race-site .lookup-transaction-meta{grid-template-columns:1fr}
+ .race-site .lookup-transaction-meta>.lookup-transaction-amount{grid-column:1;grid-row:auto;margin-top:3px}
+ .race-site .lookup-number-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .race-site .lookup-number-chip{min-height:43px;font-size:1rem}
+}
