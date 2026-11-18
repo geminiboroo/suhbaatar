@@ -38,7 +38,7 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
   const description=campaign?.description||'Сүхбаатарын хурдын сугалаануудтай танилцаж, бүртгэгдсэн эрхээ шалгаарай.';
   const meta=`<link rel="canonical" href="${e(canonical)}"><meta name="description" content="${e(description)}">${Object.entries({title,description:description.slice(0,300),image:new URL(image,origin).href,url:canonical,type:'website',locale:'mn_MN'}).map(([key,value])=>`<meta property="og:${key}" content="${e(value)}">`).join('')}`;
   const card=(c,index)=>`<article class="campaign-card">
-    <img class="cover" src="${e(c.image||'/campaign-'+(index%3+1)+'.webp')}" alt="" loading="lazy">
+    <div class="campaign-image-wrap"><img class="cover" src="${e(c.image||'/campaign-'+(index%3+1)+'.webp')}" alt="" loading="lazy">${Number(c.total)>0&&Number(c.sold)>=Number(c.total)?'<div class="sold-out-stamp" aria-label="Сугалаа 100 хувь дүүрсэн"><span>100%</span><strong>ДҮҮРСЭН</strong><small>СУГАЛАА ДУУССАН</small></div>':''}</div>
     <div class="card-body">
     <h3><a href="/campaign/${e(c.slug)}">${e(c.title)}</a></h3><p class="description">${e(c.description)}</p>${copy.showPrice&&c.price?`<p class="card-price">Нэг эрх: <strong>${money(c.price)}</strong></p>`:''}
     ${copy.showStats?displayStats(c):''}
@@ -50,7 +50,7 @@ export function home({campaigns,campaign,origin,facebook,copy:rawCopy}){
     ${copy.showPrice?`<p class="ticket-price">${e(copy.priceLabel)} <strong>${campaign.price?money(campaign.price):'Үнэ тохиролцоно'}</strong></p>`:''}
     ${copy.showStats?displayStats(campaign):''}
     <div class="campaign-share-actions">${copy.showShare?shareFacebook(canonical,'button facebook-button',copy):''}${copy.showBank&&campaign.account?`<button type="button" class="button account-copy" data-copy-account="${e(campaign.account)}">Данс хуулах</button>`:''}</div>${copy.showBank&&(campaign.account||campaign.iban)?`<p class="bank-mini-details">Данс: ${e(campaign.account||'—')} · IBAN: ${e(campaign.iban||'—')}</p>`:''}
-    </div><div><img class="detail-image" src="${e(image)}" alt="">
+    </div><div class="detail-image-wrap"><img class="detail-image" src="${e(image)}" alt="">${Number(campaign.total)>0&&Number(campaign.sold)>=Number(campaign.total)?'<div class="sold-out-stamp sold-out-stamp-large" aria-label="Сугалаа 100 хувь дүүрсэн"><span>100%</span><strong>ДҮҮРСЭН</strong><small>СУГАЛАА ДУУССАН</small></div>':''}</div>
     ${copy.showBank&&campaign.bank?`<section class="payment-card" aria-label="Төлбөр төлөх дансны мэдээлэл"><div class="bank-brand">${campaign.logo?`<img class="bank-logo-image" src="${e(campaign.logo)}" alt="${e(campaign.provider||campaign.bank)}">`:'<span class="bank-logo-mark">K</span>'}<span><strong>${e(campaign.provider||campaign.bank||'ХААН БАНК')}</strong><small>ТӨЛБӨР ТӨЛӨХ ДАНС</small></span></div><dl>${campaign.account?`<div><dt>💳 ДАНС</dt><dd>${e(campaign.account)}</dd></div>`:''}${campaign.iban?`<div><dt>💳 IBAN</dt><dd>${e(campaign.iban)}</dd></div>`:''}${campaign.holder?`<div><dt>👤 ЭЗЭМШИГЧ</dt><dd>${e(campaign.holder)}</dd></div>`:''}<div><dt>📝 ГҮЙЛГЭЭНИЙ УТГА</dt><dd>${e(copy.bankMemo)} 📱</dd></div></dl><p class="payment-note">${e(copy.bankNote)}</p></section>`:''}
     ${lookup(campaign.id,copy)}</div></section></main>`:
     `<main id="content"><section class="hero"><div class="wrap hero-layout"><div class="hero-copy">
