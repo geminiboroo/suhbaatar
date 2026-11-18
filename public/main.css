@@ -633,3 +633,14 @@
   .race-site .campaign-stats dt{font-size:.6rem}
   .race-site .campaign-stats dd{font-size:1rem}
 }
+
+.lookup-campaign-result{margin-top:14px;padding:14px;border:1px solid #48647b;border-radius:14px;background:linear-gradient(145deg,#122b40,#0d2031)}
+.lookup-campaign-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#f4d18a}
+.lookup-ticket-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:7px}
+.lookup-ticket-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;background:#ffffff09;border:1px solid #ffffff12}
+.lookup-ticket-list li strong{color:#f2d18e;white-space:nowrap}
+.lookup-ticket-list li span{color:#c7d4df;text-align:right;font-size:.86rem}
+.campaign-share-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.account-copy{background:#1b3b51;border:1px solid #6e91a7;color:#fff}
+.bank-mini-details{margin:7px 0 0;color:#b8c8d5;font-size:.76rem;line-height:1.5}
+@media(max-width:520px){.lookup-ticket-list li{align-items:flex-start;flex-direction:column;gap:4px}.lookup-ticket-list li span{text-align:left}.campaign-share-actions>*{flex:1}}
