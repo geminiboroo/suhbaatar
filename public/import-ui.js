@@ -8,10 +8,55 @@ if(form){
   const report=document.getElementById('import-report');
   const sample=document.getElementById('sample-data');
   const keys=['phone','tickets'];
-  let fingerprint='', inspected=null,revision=0;
+  let fingerprint='', inspected=null,revision=0,book=null,source=null;
+  const edge=Boolean(window.XLSX);
+  async function readLocal(payload){
+    const file=fields.file.files[0];
+    if(!file||file.size>5*1024*1024||!/\.(xlsx|xls|csv)$/i.test(file.name))throw new Error('5 МБ хүртэлх XLSX, XLS эсвэл CSV файл оруулна уу.');
+    if(source!==file){
+      const bytes=await file.arrayBuffer();
+      book=window.XLSX.read(bytes,{type:'array',raw:/\.csv$/i.test(file.name),codepage:65001,sheetRows:10001,cellFormula:true});
+      source=file;
+    }
+    const sheet=payload.get('sheet')||book.SheetNames[0];
+    const table=book.Sheets[sheet];
+    if(!table?.['!ref'])return {sheets:book.SheetNames,sheet,columns:0,rows:[]};
+    const range=window.XLSX.utils.decode_range(table['!ref']);
+    if(range.e.r>=10000||range.e.c>=80)throw new Error('Нэг хуудсанд 10,000 мөр, 80 багана хүртэл оруулна.');
+    const cell=(r,c)=>{
+      const value=table[window.XLSX.utils.encode_cell({r,c})];
+      return value?.f||value?.F||value?.t==='e'?'#INVALID_CELL':String(value?.v??'');
+    };
+    return {sheets:book.SheetNames,sheet,columns:range.e.c+1,
+      rows:Array.from({length:Math.min(12,range.e.r+1)},(_,r)=>Array.from({length:range.e.c+1},(_,c)=>cell(r,c).slice(0,160)))};
+  }
+  function selectedRows(){
+    const start=Number(fields.start.value),header=Number(fields.header.value);
+    if(!Number.isInteger(start)||start<1||!Number.isInteger(header)||header<0||header>=start||fields.phone.value===''||
+      fields.tickets.value===''||fields.phone.value===fields.tickets.value)throw new Error('Мөр, утас болон эрхийн баганыг шалгана уу.');
+    const table=book?.Sheets[fields.sheet.value];
+    if(!table?.['!ref'])return [];
+    const range=window.XLSX.utils.decode_range(table['!ref']);
+    const rows=[];
+    for(let row=start-1;row<=range.e.r;row++){
+      const read=column=>{
+        const cell=table[window.XLSX.utils.encode_cell({r:row,c:Number(column)})];
+        return cell?.f||cell?.F||cell?.t==='e'?'#INVALID_CELL':String(cell?.v??'');
+      };
+      const phone=read(fields.phone.value),tickets=read(fields.tickets.value);
+      if(phone.trim()||tickets.trim()||Array.from({length:range.e.c+1},(_,col)=>read(col)).some(value=>value.trim())){
+        rows.push([row+1,phone.length<=500?phone:'',tickets]);
+      }
+    }
+    return rows;
+  }
   async function send(mode,payload=new FormData(form)){
+    if(edge&&mode==='inspect')return readLocal(payload);
     if(mode==='commit') payload.set('fingerprint',fingerprint);
-    const res=await fetch('/admin/import/'+mode,{method:'POST',body:payload});
+    const request=edge?{headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      campaign:fields.campaign.value,rows:selectedRows(),fingerprint
+    })}:{body:payload};
+    const res=await fetch('/admin/import/'+mode,{method:'POST',...request});
     const data=await res.json();
     if(!res.ok) throw new Error(data.error);
     return data;

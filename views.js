@@ -82,7 +82,7 @@ export function login(error=''){
     <button class="button gold">Нэвтрэх →</button></form>${link('/','← Нүүр хуудас','text-link')}</div></main>`);
 }
 const options=(items,selected)=>items.map(([value,label])=>`<option value="${e(value)}"${String(value)===String(selected)?' selected':''}>${e(label)}</option>`).join('');
-export function admin(campaigns,stats,logs,batches,facebook,owner){
+export function admin(campaigns,stats,logs,batches,facebook,owner,edge=false){
   return consolePage('Удирдлагын самбар',`<dl class="admin-stats">${[['Нийт сугалаа',campaigns.length],['Идэвхтэй',stats.active],['Оролцогч',stats.participants],['Борлуулсан эрх',stats.sold],['Гүйлгээ',stats.transactions],['Баталгаажсан',stats.confirmed],['Хүлээгдэж буй',stats.pending],['Нийт орлого',money(stats.revenue)]].map(([label,value])=>`<div><dt>${label}</dt><dd>${typeof value==='string'&&value.includes('₮')?e(value):fmt(value)}</dd></div>`).join('')}</dl>
     <section class="panel"><div class="row"><h2>Сугалаанууд</h2>${owner?link('/admin/campaigns/new','Сугалаа үүсгэх','button gold'):''}</div>
       ${campaigns.length?`<div class="table-scroll"><table><thead><tr><th>Нэр</th><th>Төлөв</th><th>Эрх</th><th>Үйлдэл</th></tr></thead><tbody>${campaigns.map(c=>`<tr><td>${e(c.title)}</td><td>${c.active?'Нээлттэй':'Хаалттай'} · ${c.public?'Нийтэд':'Нууц'}</td><td>${fmt(c.sold)} / ${fmt(c.total)}</td><td>${owner?link('/admin/campaigns/'+c.id,'Засах','text-link'):''}</td></tr>`).join('')}</tbody></table></div>`:'<p>Сугалаа үүсгээгүй байна.</p>'}</section>
@@ -101,7 +101,7 @@ export function admin(campaigns,stats,logs,batches,facebook,owner){
     <section class="panel"><h2>Сүүлийн үйлдлүүд</h2>${logs.length?`<ul class="logs">${logs.map(l=>`<li><strong>${e(l.action)}</strong> · ${e(l.target)} <time>${date(l.created_at)}</time></li>`).join('')}</ul>`:'<p>Үйлдэл бүртгэгдээгүй байна.</p>'}</section>
     ${owner?`<section class="panel"><h2>Сайтын тохиргоо</h2><form method="post" action="/admin/site" class="form-grid">${field('Холбоо барих Facebook хуудасны холбоос','facebook',facebook,'url')}<div class="full"><button class="button secondary">Хадгалах</button></div></form></section>`:''}
     <details class="panel"><summary>Нууц үг солих</summary><form method="post" action="/admin/password" class="form-grid">
-    ${field('Одоогийн нууц үг','current','','password','required autocomplete="current-password"')}${field('Шинэ нууц үг (14 тэмдэгтээс дээш)','password','','password','required minlength="14" maxlength="160" autocomplete="new-password"')}<div class="full"><button class="button secondary">Нууц үг солих</button></div></form></details>`, '<script src="/import-ui.js" defer></script><script src="/confirm.js" defer></script>');
+    ${field('Одоогийн нууц үг','current','','password','required autocomplete="current-password"')}${field('Шинэ нууц үг (14 тэмдэгтээс дээш)','password','','password','required minlength="14" maxlength="160" autocomplete="new-password"')}<div class="full"><button class="button secondary">Нууц үг солих</button></div></form></details>`, (edge?'<script src="/cloudflare-xlsx.js" defer></script>':'')+'<script src="/import-ui.js" defer></script><script src="/confirm.js" defer></script>');
 }
 export function importReport(batch,rows,page){
   const labels={valid:'Импортолсон',invalid:'Алдаатай',duplicate:'Давхардсан'};

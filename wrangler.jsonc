@@ -1,0 +1,13 @@
+{
+  "name": "sukhbaataryn-hurd",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-11-18",
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sukhbaataryn-hurd",
+      "migrations_dir": "cloudflare/migrations"
+    }
+  ]
+}
