@@ -104,3 +104,16 @@
 .contact-actions h2 { font:700 .9rem var(--sans); margin:0 .3rem 0 0; }
 @media(max-width:800px) { .race-site .top .nav { grid-template-columns:auto 1fr; } .race-site .top nav { justify-content:flex-end; } }
 @media(max-width:650px) { .race-site .top .nav { display:flex; } .race-site .top nav { justify-content:space-between; width:100%; order:3; } .race-site footer .row { flex-wrap:wrap; } .contact-actions { justify-content:flex-start; } }
+
+/* Homepage hero: keep the rider's face clear of the eligibility panel. */
+@media (min-width: 900px) {
+  .race-site .hero-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 29%);
+    align-items: stretch;
+    gap: 2.8rem;
+  }
+  .race-site .lookup-card {
+    align-self: end;
+    transform: translateY(2.5rem);
+  }
+}
