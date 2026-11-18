@@ -37,16 +37,19 @@ export function home({campaigns,campaign,origin,facebook}){
   const card=(c,index)=>`<article class="campaign-card">
     <img class="cover" src="${e(c.image||'/campaign-'+(index%3+1)+'.webp')}" alt="" loading="lazy">
     <div class="card-body">
-    <h3><a href="/campaign/${e(c.slug)}">${e(c.title)}</a></h3><p class="description">${e(c.description)}</p>
+    <h3><a href="/campaign/${e(c.slug)}">${e(c.title)}</a></h3><p class="description">${e(c.description)}</p><p class="card-price">Нэг эрх: <strong>${money(c.price)}</strong></p>
     ${participantStats(c)}
     <div class="card-actions">${link('/campaign/'+c.slug,'Дэлгэрэнгүй →','button gold')}
     ${shareFacebook(origin+'/campaign/'+c.slug)}</div></div></article>`;
   const main=campaign?`<main id="content"><section class="wrap detail"><div>
     ${link('/#campaigns','← Бүх сугалаа','text-link')}<p class="eyebrow">ИДЭВХТЭЙ СУГАЛАА</p><h1>${e(campaign.title)}</h1>
     <p class="description">${e(campaign.description)}</p>${campaign.ends?'<p>'+date(campaign.ends)+' хүртэл</p>':''}
+    <p class="ticket-price">НЭГ ЭРХИЙН ҮНЭ <strong>${money(campaign.price)}</strong></p>
     ${participantStats(campaign)}${displayStats(campaign)}
     ${shareFacebook(canonical)}
-    </div><div><img class="detail-image" src="${e(image)}" alt="">${lookup(campaign.id)}</div></section></main>`:
+    </div><div><img class="detail-image" src="${e(image)}" alt="">
+    ${campaign.bank?`<section class="payment-card" aria-label="Төлбөр төлөх дансны мэдээлэл"><div class="bank-brand"><span class="bank-logo-mark">K</span><span><strong>ХААН БАНК</strong><small>ТӨЛБӨР ТӨЛӨХ ДАНС</small></span></div><dl>${campaign.account?`<div><dt>💳 ДАНС</dt><dd>${e(campaign.account)}</dd></div>`:''}${campaign.iban?`<div><dt>💳 IBAN</dt><dd>${e(campaign.iban)}</dd></div>`:''}${campaign.holder?`<div><dt>👤 ЭЗЭМШИГЧ</dt><dd>${e(campaign.holder)}</dd></div>`:''}<div><dt>📝 ГҮЙЛГЭЭНИЙ УТГА</dt><dd>УТАСНЫ ДУГААРАА БИЧНЭ ҮҮ! 📱</dd></div></dl><p class="payment-note">Гүйлгээний утгад бүртгүүлэх утасны дугаараа заавал бичнэ үү.</p></section>`:''}
+    ${lookup(campaign.id)}</div></section></main>`:
     `<main id="content"><section class="hero"><div class="wrap hero-layout"><div class="hero-copy">
       <h1>СҮХБААТАРЫН<br><em>ХУРД</em></h1>
       <p class="hero-tagline">СУГАЛААТ ХУДАЛДАА</p>
@@ -116,15 +119,16 @@ export function campaignForm(c){
   return consolePage(c.id?'Сугалаа засах':'Шинэ сугалаа',`<form method="post" action="/admin/campaigns" enctype="multipart/form-data" class="panel form-grid">
     <input type="hidden" name="id" value="${c.id||''}">${field('Нэр','title',c.title,'text','required maxlength="150"')}${field('Холбоосын нэр (slug)','slug',c.slug,'text','required pattern="[a-z0-9]+(-[a-z0-9]+)*"')}
     <label class="full">Тайлбар<textarea name="description" required maxlength="6000">${e(c.description)}</textarea></label>
-    ${field('Нийт эрх','total',c.total,'number','required min="1" max="1000000"')}<input type="hidden" name="price" value="${c.price||1}">
+    ${field('Нийт эрх','total',c.total,'number','required min="1" max="1000000"')}${field('Нэг эрхийн үнэ (₮)','price',c.price||'','number','required min="1" max="1000000000"')}
     ${field('Зорилтот оролцогчдын тоо','participantGoal',c.participant_goal,'number','min="1" max="1000000"')}
     ${field('Эхлэх хугацаа (Улаанбаатар)','starts',inputDate(c.starts),'datetime-local')}${field('Дуусах хугацаа (Улаанбаатар)','ends',inputDate(c.ends),'datetime-local')}
     ${field('Зургийн HTTPS холбоос','image',c.image)}<label>Зураг оруулах<input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label>
     <input type="hidden" name="active" value="off"><input type="hidden" name="public" value="off">
     ${check('Сугалааг нээх','active',c.id?c.active:true)}${check('Нийтэд харуулах','public',c.id?c.public:true)}
-    ${['bank','holder','account','iban','logo','provider'].map(name=>`<input type="hidden" name="${name}" value="${e(c[name])}">`).join('')}
+    <fieldset class="full form-grid bank-fields"><legend>Төлбөр хүлээн авах данс (энэ сугалаанд)</legend>
+    ${field('Банк','bank',c.bank||'ХААН БАНК')}${field('Эзэмшигч','holder',c.holder||'ГОНГОРЖАВ')}${field('Дансны дугаар','account',c.account||'5637213181')}${field('IBAN','iban',c.iban||'93000500')}${field('Банкны логоны HTTPS холбоос (сонголтоор)','logo',c.logo,'url')}${field('Дэлгэцэд харагдах банкны нэр','provider',c.provider||'ХААН БАНК')}</fieldset>
     <div class="actions full"><button class="button gold">Хадгалах</button>${link('/admin','Буцах','button secondary')}</div>
-    </form>${c.id?`<form method="post" action="/admin/campaigns/${c.id}/delete" data-confirm="Сугалааг архивлаж, нийтээс хасах уу?"><button class="button danger">Сугалаа архивлах</button></form>`:''}`,'<script src="/confirm.js" defer></script>');
+    </form>${c.id?`<div class="campaign-danger-actions"><form method="post" action="/admin/campaigns/${c.id}/delete" data-confirm="Сугалааг архивлаж, нийтээс нуух уу? Өгөгдөл хадгалагдана."><button class="button secondary">Архивлах (өгөгдөл хадгална)</button></form><form method="post" action="/admin/campaigns/${c.id}/hard-delete" data-confirm="Зөвхөн гүйлгээ, эрх бүртгэгдээгүй сугалааг бүрмөсөн устгана. Үргэлжлүүлэх үү?"><button class="button danger">Бүрмөсөн устгах</button></form></div>`:''}`,'<script src="/confirm.js" defer></script>');
 }
 const statuses={confirmed:'Баталгаажсан',pending:'Хүлээгдэж буй',reversed:'Буцаасан'};
 export function transactions(rows,term,page){
