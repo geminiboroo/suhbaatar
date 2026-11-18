@@ -113,10 +113,13 @@ async function route(req,env){
     const body=await readBody(req);
     const phone=phoneNumber(field(body,'phone',30));
     if(!phone)fail('Утасны 8 оронтой дугаараа шалгана уу.');
+    const campaignId=body.campaign?number(body.campaign):0;
+    if(body.campaign&&!campaignId)fail('Сугалаагаа шалгана уу.');
     await rate(db,req,'lookup',30,600);
     const found=await one(`SELECT count(*) count FROM participants p JOIN transactions t ON t.participant_id=p.id
       JOIN lottery_tickets l ON l.transaction_id=t.id JOIN campaigns c ON c.id=l.campaign_id
-      WHERE p.phone=?1 AND t.status='confirmed' AND c.public AND NOT c.archived`,phone);
+      WHERE p.phone=?1 AND t.status='confirmed' AND c.public AND NOT c.archived
+      AND (?2=0 OR c.id=?2)`,phone,campaignId);
     return json({count:found.count});
   }
   if(path==='/admin/login'&&method==='GET')return html(views.login());
