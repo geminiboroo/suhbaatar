@@ -118,11 +118,20 @@
   }
 }
 
-/* Keep the full horse-and-rider artwork unobstructed on desktop and mobile. */
-.race-site .hero-layout { display:block; }
-.race-site .hero-copy { max-width:58rem; }
-.race-site .hero { background-position:center 42%; }
-.race-site .hero-lookup { position:relative; z-index:1; padding:1.5rem 0; background:linear-gradient(180deg,#0a2038,#07182b); }
-.race-site .hero-lookup .lookup-card { width:min(100%,560px); margin:0 auto; transform:none; }
-@media(min-width:900px){.race-site .hero{min-height:clamp(620px,57vw,820px);background-position:center 38%;}.race-site .hero-copy{padding-top:4rem;}}
-@media(max-width:650px){.race-site .hero{background-position:58% top;}.race-site .hero-lookup{padding:1rem 0 1.5rem;}}
+/* Keep eligibility lookup within the illustrated hero header without covering the rider. */
+.race-site .hero { position:relative; }
+.race-site .hero-layout { display:block; position:relative; min-height:clamp(580px,53vw,760px); }
+.race-site .hero-copy { max-width:58rem; padding:1.2rem 0 0; }
+.race-site .hero .lookup-card { position:absolute; left:0; bottom:2rem; width:min(330px,38%); margin:0; transform:none; background:rgba(5,22,42,.88); border:1px solid rgba(246,195,106,.55); backdrop-filter:blur(8px); box-shadow:0 16px 44px rgba(0,0,0,.28); }
+.race-site .hero-lookup { display:none; }
+@media(max-width:899px) {
+  .race-site .hero { min-height:650px; background-position:62% center; }
+  .race-site .hero-layout { min-height:650px; }
+  .race-site .hero .lookup-card { width:min(330px,52%); bottom:1.5rem; }
+}
+@media(max-width:600px) {
+  .race-site .hero { min-height:700px; background-position:64% center; }
+  .race-site .hero-layout { min-height:700px; }
+  .race-site .hero-copy { max-width:80%; }
+  .race-site .hero .lookup-card { width:min(100%,330px); left:0; bottom:1rem; }
+}
