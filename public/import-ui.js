@@ -100,9 +100,20 @@ if(form){
   function choices(reset){
     const heading=inspected.rows[Number(fields.header.value)-1]||[];
     const body=inspected.rows.slice(Math.max(0,Number(fields.start.value)-1));
-    const patterns={phone:/утас|гүйлгээний утга|phone|mobile/i,date:/огноо|date|хугацаа|time/i,amount:/дүн|amount|орлого/i,tickets:/эрхийн дугаар|ticket|сугалааны дугаар/i};
-    const grouped=inspected.columns>=4 && /тод\s+хүрэн\s+үрээ/i.test(inspected.rows[0]?.[0]||'') &&
-      body.some(row=>row[0]&&row[1]&&row[2]&&row[3]);
+    const patterns={phone:/утас|гүйлгээний утга|phone|mobile|харилцагч/i,date:/огноо|date|хугацаа|time/i,amount:/дүн|amount|орлого|төгрөг/i,tickets:/эрхийн дугаар|ticket|сугалааны дугаар|дугаар/i};
+    const sampleValues=column=>body.map(row=>String(row[column]||'').trim()).filter(Boolean);
+    const isPhone=value=>/(?:\+?976[ -]?)?[1-9]\d{3}[ -]?\d{4}/.test(value);
+    const isDate=value=>{const n=Number(value);return n>=20000&&n<=80000||/^\d{4}[-./]\d{1,2}[-./]\d{1,2}/.test(value)||/^\d{1,2}[-./]\d{1,2}[-./]\d{4}/.test(value);};
+    const isTicket=value=>/^\d{1,7}(?:\.0+)?$/.test(value)&&Number(value)>=1&&Number(value)<=1000000;
+    const isAmount=value=>/^\s*[\d, ]+(?:\.0+)?\s*₮?\s*$/.test(value)&&Number(value.replace(/[₮,\s]/g,''))>0;
+    const phoneScores=Array.from({length:inspected.columns},(_,c)=>sampleValues(c).filter(isPhone).length);
+    const dateScores=Array.from({length:inspected.columns},(_,c)=>sampleValues(c).filter(isDate).length);
+    const ticketScores=Array.from({length:inspected.columns},(_,c)=>sampleValues(c).filter(isTicket).length);
+    const amountScores=Array.from({length:inspected.columns},(_,c)=>sampleValues(c).filter(isAmount).length);
+    const best=scores=>scores.reduce((best,value,index)=>value>scores[best]?index:best,0);
+    const legacy=inspected.columns>=4 && phoneScores.some(n=>n>0)&&dateScores.some(n=>n>0)&&ticketScores.some(n=>n>0)&&amountScores.some(n=>n>0);
+    const grouped=legacy || (inspected.columns>=4 && /тод\s+хүрэн\s+үрээ/i.test(inspected.rows[0]?.[0]||'') &&
+      body.some(row=>row[0]&&row[1]&&row[2]&&row[3]));
     for(const name of keys){
       const select=fields[name];
       const old=select?.value??'';
@@ -111,7 +122,11 @@ if(form){
       for(let c=0;c<inspected.columns;c++) select.add(new Option(letter(c)+(heading[c]?' · '+heading[c]:''),c));
       const named=heading.findIndex(value=>patterns[name].test(value));
       let guessed=named;
-      if(reset&&grouped) guessed=({phone:3,date:1,amount:2,tickets:0})[name];
+      if(reset&&grouped){
+        const detected={phone:best(phoneScores),date:best(dateScores),amount:best(amountScores),tickets:best(ticketScores)};
+        const legacyLayout=phoneScores[3]>0&&dateScores[1]>0&&amountScores[2]>0&&ticketScores[0]>0;
+        guessed=legacyLayout?({phone:3,date:1,amount:2,tickets:0})[name]:detected[name];
+      }
       if(guessed<0 && ['phone','date','amount'].includes(name)){
         const used=new Set(keys.slice(0,keys.indexOf(name)).map(key=>fields[key]?.value??''));
         const match={
