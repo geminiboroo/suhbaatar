@@ -13,13 +13,13 @@ const displayStats=c=>`<dl class="campaign-stats">${[['Оролцогч',c.parti
   <div class="progress-label"><span>Борлуулалтын явц</span><strong>${Math.round(c.sold/c.total*100)}%</strong></div><progress value="${c.sold}" max="${c.total}" aria-label="Борлуулалтын явц"></progress>`;
 const siteName='СҮХБААТАРЫН ХУРД — СУГАЛААТ ХУДАЛДАА';
 const publicBrand=`<a class="race-brand" href="/" aria-label="${siteName} · Нүүр хуудас"><img class="race-emblem" src="/horse-mark.webp" width="56" height="56" alt=""><span>СҮХБААТАРЫН<strong>ХУРД</strong></span></a>`;
-const lookup=`<section class="lookup-card" id="lookup" aria-labelledby="lookup-title">
+function lookup(campaignId=null){return `<section class="lookup-card" id="lookup" aria-labelledby="lookup-title">
   <div class="lookup-content"><h2 id="lookup-title">ЭРХ ШАЛГАХ</h2>
   <p>Бүртгүүлсэн утасны 8 оронтой дугаараа оруулна уу.</p>
-  <form id="lookup-form" class="lookup-form"><label for="phone">Утасны дугаар</label>
+  <form id="lookup-form" class="lookup-form">${campaignId?'<input type="hidden" name="campaign" value="'+Number(campaignId)+'">':''}<label for="phone">Утасны дугаар</label>
   <div class="phone-field"><input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="99112233" pattern="[0-9]{8}" maxlength="8" required></div>
   <button class="button gold" type="submit">ЭРХ ШАЛГАХ</button>
-  <p id="lookup-status" role="status" hidden></p></form></div></section>`;
+  <p id="lookup-status" role="status" hidden></p></form></div></section>`;}
 function shareFacebook(url,classes='button facebook-button'){
   return `<a class="${classes}" href="https://www.facebook.com/sharer/sharer.php?u=${e(encodeURIComponent(url))}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook-д хуваалцах</a>`;
 }
@@ -46,12 +46,13 @@ export function home({campaigns,campaign,origin,facebook}){
     <p class="description">${e(campaign.description)}</p>${campaign.ends?'<p>'+date(campaign.ends)+' хүртэл</p>':''}
     ${participantStats(campaign)}${displayStats(campaign)}
     ${shareFacebook(canonical)}
-    </div><div><img class="detail-image" src="${e(image)}" alt="">${lookup}</div></section></main>`:
+    </div><div><img class="detail-image" src="${e(image)}" alt="">${lookup(campaign.id)}</div></section></main>`:
     `<main id="content"><section class="hero"><div class="wrap hero-layout"><div class="hero-copy">
       <h1>СҮХБААТАРЫН<br><em>ХУРД</em></h1>
       <p class="hero-tagline">СУГАЛААТ ХУДАЛДАА</p>
       <p class="hero-intro">Сүхбаатар нутгийн хурдан хүлгийн сугалаануудтай танилцаж, бүртгүүлсэн эрхээ шалгаарай.</p>
-    </div>${lookup}</div></section>
+    </div></div></section>
+    <section class="hero-lookup"><div class="wrap">${lookup()}</div></section>
     <nav class="hero-rail" aria-label="Шуурхай холбоос"><div class="wrap">
       <a href="#campaigns"><img src="/horse-mark.webp" width="26" height="26" alt=""> Идэвхтэй сугалаа</a>
       <a href="#lookup"><span aria-hidden="true">▥</span> ЭРХ ШАЛГАХ</a>
@@ -120,7 +121,8 @@ export function campaignForm(c){
     ${field('Зорилтот оролцогчдын тоо','participantGoal',c.participant_goal,'number','min="1" max="1000000"')}
     ${field('Эхлэх хугацаа (Улаанбаатар)','starts',inputDate(c.starts),'datetime-local')}${field('Дуусах хугацаа (Улаанбаатар)','ends',inputDate(c.ends),'datetime-local')}
     ${field('Зургийн HTTPS холбоос','image',c.image)}<label>Зураг оруулах<input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label>
-    ${check('Сугалааг нээх','active',c.active)}${check('Нийтэд харуулах','public',c.public)}
+    <input type="hidden" name="active" value="off"><input type="hidden" name="public" value="off">
+    ${check('Сугалааг нээх','active',c.id?c.active:true)}${check('Нийтэд харуулах','public',c.id?c.public:true)}
     ${['bank','holder','account','iban','logo','provider'].map(name=>`<input type="hidden" name="${name}" value="${e(c[name])}">`).join('')}
     <div class="actions full"><button class="button gold">Хадгалах</button>${link('/admin','Буцах','button secondary')}</div>
     </form>${c.id?`<form method="post" action="/admin/campaigns/${c.id}/delete" data-confirm="Сугалааг архивлаж, нийтээс хасах уу?"><button class="button danger">Сугалаа архивлах</button></form>`:''}`,'<script src="/confirm.js" defer></script>');
