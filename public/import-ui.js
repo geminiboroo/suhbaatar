@@ -31,6 +31,18 @@ if(form){
       rows:Array.from({length:Math.min(12,range.e.r+1)},(_,r)=>Array.from({length:range.e.c+1},(_,c)=>cell(r,c).slice(0,160)))};
   }
   function selectedRows(){
+    const dateCellValue=(table,row,column)=>{
+      if(column==='')return '';
+      const cell=table[window.XLSX.utils.encode_cell({r:row,c:Number(column)})];
+      if(!cell)return '';
+      if(cell.f||cell.F||cell.t==='e')return '#INVALID_CELL';
+      const value=cell.v;
+      if(typeof value==='number'&&Number.isFinite(value)&&value>=20000&&value<=80000){
+        const date=new Date(Date.UTC(1899,11,30)+value*86400000);
+        return date.toISOString();
+      }
+      return String(value??'');
+    };
     const start=Number(fields.start?.value??1),header=Number(fields.header?.value??0);
     if(!Number.isInteger(start)||start<1||!Number.isInteger(header)||header<0||header>=start||!fields.phone?.value||
       !fields.tickets?.value||fields.phone.value===fields.tickets.value)throw new Error('Мөр, утас болон эрхийн баганыг шалгана уу.');
@@ -44,7 +56,7 @@ if(form){
         return cell?.f||cell?.F||cell?.t==='e'?'#INVALID_CELL':String(cell?.v??'');
       };
       const phone=read(fields.phone.value),tickets=read(fields.tickets.value);
-      const dateValue=!fields.date?.value?'':read(fields.date.value),amountValue=!fields.amount?.value?'':read(fields.amount.value);
+      const dateValue=!fields.date?.value?'':dateCellValue(table,row,fields.date.value),amountValue=!fields.amount?.value?'':read(fields.amount.value);
       if(phone.trim()||tickets.trim()||dateValue.trim()||amountValue.trim()||Array.from({length:range.e.c+1},(_,col)=>read(col)).some(value=>value.trim()))rows.push([row+1,phone.length<=500?phone:'',tickets,dateValue,amountValue]);
     }
     return rows;
