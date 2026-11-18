@@ -117,3 +117,12 @@
     transform: translateY(2.5rem);
   }
 }
+
+/* Keep the full horse-and-rider artwork unobstructed on desktop and mobile. */
+.race-site .hero-layout { display:block; }
+.race-site .hero-copy { max-width:58rem; }
+.race-site .hero { background-position:center 42%; }
+.race-site .hero-lookup { position:relative; z-index:1; padding:1.5rem 0; background:linear-gradient(180deg,#0a2038,#07182b); }
+.race-site .hero-lookup .lookup-card { width:min(100%,560px); margin:0 auto; transform:none; }
+@media(min-width:900px){.race-site .hero{min-height:clamp(620px,57vw,820px);background-position:center 38%;}.race-site .hero-copy{padding-top:4rem;}}
+@media(max-width:650px){.race-site .hero{background-position:58% top;}.race-site .hero-lookup{padding:1rem 0 1.5rem;}}
