@@ -20,7 +20,7 @@ if(form){
     const header=matrix[0]||[];
     let ticketCol=header.findIndex(v=>/эрхийн дугаар|тасалбар|ticket|сугалааны дугаар/i.test(v));
     let phoneCol=header.findIndex(v=>/утас|гүйлгээний утга|memo|phone|mobile/i.test(v));
-    if(ticketCol<0){const sorted=numericScores.map((score,c)=>({c,score,unique:new Set(columns[c]).size})).sort((a,b)=>b.score-a.score||b.unique-a.unique);ticketCol=sorted[0]?.score>0?sorted[0].c:-1;}
+    if(ticketCol<0){const sorted=numericScores.map((score,c)=>({c,score,ratio:score?new Set(columns[c].filter(ticketValue)).size/score:0})).sort((a,b)=>b.ratio-a.ratio||b.score-a.score);ticketCol=sorted[0]?.score>=2&&sorted[0]?.ratio>=0.65?sorted[0].c:-1;}
     if(phoneCol<0){const sorted=phoneScores.map((score,c)=>({c,score})).filter(x=>x.c!==ticketCol).sort((a,b)=>b.score-a.score);phoneCol=sorted[0]?.score>0?sorted[0].c:-1;}
     if(ticketCol<0||phoneCol<0)return {name,count:0,reason:ticketCol<0?'Эрхийн дугаарын багана илрээгүй':'Утасны дугаарын багана илрээгүй'};
     const out=[];
