@@ -50,7 +50,7 @@ export async function importTickets(db,body,admin,session,mode){
     data.push({row,phone,tickets,status,reason});
   }
   const fingerprint=await sign(session,JSON.stringify([id,campaign.revision,body.rows]));
-  const report=data.map(({row,phone,tickets,status,reason})=>({row,phone:phone?phone.slice(0,2)+'••••'+phone.slice(-2):'',count:tickets.length,status,reason}));
+  const report=data.map(({row,phone,tickets,status,reason})=>({row,phone,count:tickets.length,status,reason}));
   if(mode==='preview') return {summary,report,fingerprint};
   if(!equals(fingerprint,body.fingerprint)) throw new Error('Өгөгдөл өөрчлөгдсөн. Урьдчилж дахин шалгана уу');
   if(!summary.valid) throw new Error('Импортлох зөв мөр алга');
