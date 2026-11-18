@@ -137,11 +137,12 @@ export function campaignForm(c){
     </form>${c.id?`<div class="campaign-danger-actions"><form method="post" action="/admin/campaigns/${c.id}/delete" data-confirm="Сугалааг архивлаж, нийтээс нуух уу? Өгөгдөл хадгалагдана."><button class="button secondary">Архивлах (өгөгдөл хадгална)</button></form><form method="post" action="/admin/campaigns/${c.id}/hard-delete" data-confirm="Зөвхөн гүйлгээ, эрх бүртгэгдээгүй сугалааг бүрмөсөн устгана. Үргэлжлүүлэх үү?"><button class="button danger">Бүрмөсөн устгах</button></form></div>`:''}`,'<script src="/confirm.js" defer></script>');
 }
 const statuses={confirmed:'Баталгаажсан',pending:'Хүлээгдэж буй',reversed:'Буцаасан'};
-export function transactions(rows,term,page){
-  return consolePage('Гүйлгээнүүд',`<section class="panel"><p>${link('/admin/transactions/new','Гүйлгээ бүртгэх','button secondary')}</p><form action="/admin/transactions" class="actions">${field('Утас, гүйлгээний утга эсвэл ID','q',term,'search','maxlength="100"')}<button class="button gold">Хайх</button></form>
+export function transactions(rows,term,page,campaigns=[],campaignId=0){
+  const query=(p)=>'/admin/transactions?q='+encodeURIComponent(term)+'&campaign='+campaignId+'&page='+p;
+  return consolePage('Гүйлгээнүүд',`<section class="panel"><p>${link('/admin/transactions/new','Гүйлгээ бүртгэх','button secondary')}</p><form action="/admin/transactions" class="actions">${field('Утас, гүйлгээний утга эсвэл ID','q',term,'search','maxlength="100"')}<label>Сугалаагаар шүүх<select name="campaign"><option value="0">Бүх сугалаа</option>${options(campaigns.map(c=>[c.id,c.title]),campaignId)}</select></label><button class="button gold">Шүүх</button></form>
   ${rows.length?`<div class="table-scroll"><table><thead><tr><th>ID</th><th>Утас</th><th>Сугалаа</th><th>Огноо</th><th>Дүн</th><th>Эрх</th><th>Төлөв</th></tr></thead>
   <tbody>${rows.slice(0,50).map(t=>`<tr><td>${link('/admin/transactions/'+t.id,'#'+t.id,'text-link')}</td><td>${e(t.phone)}</td><td>${e(t.title)}</td><td>${date(t.occurred_at)}</td><td>${t.amount==null?'—':money(t.amount)}</td><td>${t.count}</td><td>${statuses[t.status]}</td></tr>`).join('')}</tbody></table></div>`:'<p>Тохирох гүйлгээ алга.</p>'}
-  <div class="actions">${page>1?link('/admin/transactions?q='+encodeURIComponent(term)+'&page='+(page-1),'← Өмнөх','button secondary'):''}${rows.length>50?link('/admin/transactions?q='+encodeURIComponent(term)+'&page='+(page+1),'Дараах →','button secondary'):''}</div></section>`);
+  <div class="actions">${page>1?link(query(page-1),'← Өмнөх','button secondary'):''}${rows.length>50?link(query(page+1),'Дараах →','button secondary'):''}</div></section>`);
 }
 export function transactionForm(t,campaigns){
   const path='/admin/transactions/'+(t.id||'new');
