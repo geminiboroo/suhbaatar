@@ -788,3 +788,7 @@
  .race-site .race-detail .detail-image{width:100%;height:auto;max-height:none;object-fit:contain}
  .race-site .race-detail .detail-lower{width:calc(100% - 24px);gap:12px}
 }
+
+/* 2026 copyright and privacy notice */
+.race-site .legal-notice{max-width:1200px;margin:18px auto 0;padding:14px 0 20px;border-top:1px solid #ffffff25;color:#aebdc8;font-size:.72rem;line-height:1.65}
+.race-site .legal-notice p{margin:5px 0}
