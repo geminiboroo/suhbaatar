@@ -710,3 +710,65 @@
  .race-site .card-actions>*{flex:1 1 100%;min-width:0}
  .race-site .live-button{width:100%;justify-content:center}
 }
+
+
+/* Final responsive ticket lookup layout: compact count + fluid ticket grid. */
+.race-site .lookup-form #lookup-status:not([hidden]){
+ display:grid!important;grid-template-columns:minmax(0,1fr);gap:12px;width:100%;max-width:100%;
+ margin-top:14px;padding:0;background:transparent!important;color:var(--ivory);
+ font-weight:400;overflow:visible;
+}
+.race-site .lookup-form #lookup-status .lookup-total{
+ display:block;width:100%;min-width:0;margin:0;padding:14px 16px;
+ border:1px solid #d8b66b;border-radius:10px;background:#fff4d8;color:#173b2b;
+ font-size:clamp(1rem,2vw,1.25rem);line-height:1.35;font-weight:900;text-align:center;
+ overflow-wrap:anywhere;
+}
+.race-site .lookup-form #lookup-status .lookup-campaign-result{
+ display:block;width:100%;min-width:0;margin:0;padding:clamp(12px,2vw,18px);
+ border:1px solid #617b8c;border-radius:12px;background:#10283a;color:#fff;
+ overflow:hidden;
+}
+.race-site .lookup-form #lookup-status .lookup-campaign-heading{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+ width:100%;min-width:0;margin:0 0 12px;padding:0 0 10px;border-bottom:1px solid #ffffff30;
+ color:#f5d58e;
+}
+.race-site .lookup-form #lookup-status .lookup-campaign-heading>strong{
+ min-width:0;flex:1 1 130px;color:#fff;font-size:clamp(.9rem,1.5vw,1.05rem);
+ line-height:1.35;overflow-wrap:anywhere;white-space:normal;
+}
+.race-site .lookup-form #lookup-status .lookup-campaign-heading>span{
+ flex:0 0 auto;padding:5px 10px;border-radius:30px;background:#f5d58e;color:#173047;
+ font-size:.85rem;font-weight:900;white-space:nowrap;
+}
+.race-site .lookup-form #lookup-status .lookup-number-grid{
+ display:grid;width:100%;min-width:0;grid-template-columns:repeat(auto-fit,minmax(min(100%,64px),1fr));
+ gap:8px;align-items:stretch;
+}
+.race-site .lookup-form #lookup-status .lookup-number-chip{
+ display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;
+ padding:7px 4px;border:1px solid #d9bd7d;border-radius:8px;
+ background:linear-gradient(145deg,#fff6df,#e8ca85);color:#173529;
+ font-size:clamp(.95rem,1.8vw,1.12rem);line-height:1.1;font-weight:950;
+ font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:clip;
+ box-shadow:0 2px 0 #92713d;
+}
+.race-site .live-button{display:inline-flex;align-items:center;justify-content:center;gap:11px;min-height:48px;margin-top:1rem;padding:13px 22px;border:1px solid #f06b72;border-radius:8px;background:#a81725;color:#fff;font-weight:950;letter-spacing:.06em;box-shadow:0 7px 22px #0004}
+.race-site .live-button .live-dot{width:11px;height:11px;flex:none;border-radius:50%;background:#fff}
+.race-site .live-button.is-live{background:#c91425;border-color:#ff8b91;animation:liveButtonPulse 1.25s ease-in-out infinite;box-shadow:0 0 0 0 #ed263a88,0 8px 24px #0004}
+.race-site .live-button.is-live .live-dot{background:#fff;animation:liveDotPulse .9s ease-in-out infinite}
+.race-site .live-button.is-disabled{background:#5c6670;border-color:#89939b;color:#e6e9ec;opacity:.78;cursor:not-allowed;box-shadow:none}
+.race-site .phone-contact{background:#f1d18c;color:#183327;font-weight:900}
+@keyframes liveButtonPulse{0%,100%{box-shadow:0 0 0 0 #ed263a00,0 8px 24px #0004;filter:brightness(1)}50%{box-shadow:0 0 0 7px #ed263a28,0 8px 28px #0005;filter:brightness(1.12)}}
+@keyframes liveDotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.78)}}
+@media(max-width:600px){
+ .race-site .hero-layout{min-width:0}
+ .race-site .hero-copy{min-width:0}
+ .race-site .live-button{width:100%;max-width:100%}
+ .race-site .lookup-form #lookup-status .lookup-number-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .race-site .lookup-form #lookup-status .lookup-number-chip{min-height:43px;font-size:1rem}
+ .race-site .lookup-form #lookup-status .lookup-campaign-result{padding:12px}
+ .race-site .contact-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;gap:9px}
+ .race-site .contact-actions .button{flex:1 1 140px;min-width:0}
+}
