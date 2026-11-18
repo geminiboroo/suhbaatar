@@ -420,3 +420,99 @@
   .race-site .campaign-stats dt{font-size:.69rem}
   .race-site .campaign-stats dd{font-size:1.45rem}
 }
+
+
+/* Campaign cards: separate the horse photo from all text and ticket information. */
+.race-site .campaign-card{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  overflow:hidden;
+  min-height:0;
+  height:100%;
+  background:#0b2035;
+  border:1px solid #526b80;
+  border-radius:18px;
+  box-shadow:0 16px 38px #020b1a55;
+}
+.race-site .campaign-card .cover{
+  position:relative;
+  inset:auto;
+  z-index:0;
+  display:block;
+  flex:0 0 auto;
+  width:100%;
+  height:clamp(190px,24vw,290px);
+  object-fit:contain;
+  object-position:center;
+  background:#06182b;
+}
+.race-site .campaign-card:before{display:none;content:none}
+.race-site .campaign-card .card-body{
+  position:relative;
+  z-index:1;
+  width:100%;
+  padding:clamp(1rem,2vw,1.4rem);
+  background:linear-gradient(180deg,#102b43,#0b2035);
+}
+.race-site .campaign-card .card-body h3{
+  margin:0 0 .45rem;
+  font-size:clamp(1.25rem,2vw,1.75rem);
+  line-height:1.15;
+}
+.race-site .campaign-card .card-body .description{
+  display:block;
+  overflow:visible;
+  -webkit-line-clamp:unset;
+  margin:.35rem 0 .85rem;
+  color:#d8e4ee;
+  font-size:.94rem;
+  line-height:1.5;
+}
+.race-site .campaign-card .card-price{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:.5rem 1rem;
+  margin:.8rem 0 1rem;
+  padding:.85rem 1rem;
+  color:#ffe4ad;
+  background:linear-gradient(120deg,#3c2d14,#243b36);
+  border:1px solid #dcb65d;
+  border-left:5px solid #f1c76c;
+  border-radius:12px;
+  font-size:.9rem;
+  font-weight:800;
+}
+.race-site .campaign-card .card-price strong{
+  color:#ffda83;
+  font-size:clamp(1.5rem,3vw,2rem);
+  line-height:1.1;
+  font-weight:950;
+  white-space:nowrap;
+}
+.race-site .campaign-card .campaign-stats{margin:.85rem 0 .65rem}
+.race-site .campaign-card .campaign-stats>div{background:#102e29}
+.race-site .campaign-card .card-actions{margin-top:1rem;gap:.65rem}
+.race-site .campaign-card .card-actions .button{
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  font-weight:850;
+}
+@media(max-width:650px){
+  .race-site .campaign-card .cover{height:clamp(190px,58vw,270px)}
+  .race-site .campaign-card .card-body{padding:1rem}
+  .race-site .campaign-card .campaign-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .race-site .campaign-card .campaign-stats>div{min-height:78px;padding:9px 7px}
+  .race-site .campaign-card .campaign-stats>div:nth-child(3){grid-column:auto;min-height:78px}
+  .race-site .campaign-card .campaign-stats dt{font-size:.68rem}
+  .race-site .campaign-card .campaign-stats dd{font-size:clamp(1.05rem,5vw,1.5rem)}
+  .race-site .campaign-card .progress-label{font-size:.76rem}
+  .race-site .campaign-card .card-price{padding:.8rem}
+  .race-site .campaign-card .card-price strong{font-size:1.55rem}
+}
