@@ -60,7 +60,7 @@ export function home({campaigns,campaign,origin,facebook,facebookLive='',copy:ra
       <h1>${e(copy.heroTitle)}<br><em>${e(copy.heroBrand)}</em></h1>
       <p class="hero-tagline">${e(copy.heroTagline)}</p>
       <p class="hero-intro">${e(copy.heroIntro)}</p>
-      <a class="live-button ${facebookLive?'is-live':'is-disabled'}" ${facebookLive?'href="'+e(facebookLive)+'" target="_blank" rel="noopener noreferrer"':'aria-disabled="true" tabindex="-1"'}><span class="live-dot"></span> LIVE ҮЗЭХ <small>${facebookLive?'ШУУД ДАМЖУУЛАЛТ':'ОДОО LIVE АЛГА'}</small></a>
+      <a class="live-button ${facebookLive?'is-live':'is-disabled'}" ${facebookLive?'href="'+e(facebookLive)+'" target="_blank" rel="noopener noreferrer"':'aria-disabled="true" tabindex="-1"'}><span class="live-dot"></span> LIVE ҮЗЭХ</a>
     </div>${lookup(null,copy)}</div></section>
     <nav class="hero-rail" aria-label="Шуурхай холбоос"><div class="wrap">
       <a href="#campaigns"><img src="/horse-mark.webp" width="26" height="26" alt="" > ${e(copy.railCampaigns)}</a>
@@ -73,7 +73,7 @@ export function home({campaigns,campaign,origin,facebook,facebookLive='',copy:ra
       </div></section></main>`;
   return doc(title,`<a class="skip" href="#content">Үндсэн агуулга</a><header class="top"><div class="wrap nav">${publicBrand}
     <nav aria-label="Үндсэн цэс"><a href="/" ${campaign?'':'aria-current="page"'}>${e(copy.navHome)}</a><a href="/#campaigns">${e(copy.navCampaigns)}</a><a href="#lookup">${e(copy.navLookup)}</a><a href="/#help">${e(copy.navHelp)}</a>${copy.showContact&&facebook?'<a href="#contact">Холбоо барих</a>':''}</nav>
-    </div></header>${main}<footer id="contact"><div class="wrap row">${publicBrand}<div class="contact-actions">${facebook?`<h2>Холбоо барих</h2><a class="button facebook-button" href="${e(facebook)}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook</a>`:''}</div></div></footer>`,
+    </div></header>${main}<footer id="contact"><div class="wrap row">${publicBrand}<div class="contact-actions"><h2>Холбоо барих</h2><a class="button phone-contact" href="tel:99205196">☎ 99205196</a>${facebook?`<a class="button facebook-button" href="${e(facebook)}" target="_blank" rel="noopener noreferrer"><span class="facebook-mark" aria-hidden="true">f</span> Facebook</a>`:''}</div></div></footer>`,
     {meta:meta+'<link rel="icon" href="/horse-mark.webp" type="image/webp">',className:campaign?'race-site race-detail':'race-site',scripts:'<script src="/public-ui.js" defer></script>'});
 }
 function consolePage(title,html,scripts=''){
