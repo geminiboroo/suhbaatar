@@ -6,6 +6,7 @@
   "d1_databases": [
     {
       "binding": "DB",
+      "database_id": "a3ab57c3-2f6c-4294-8ae2-b9882099338a",
       "database_name": "sukhbaataryn-hurd",
       "migrations_dir": "cloudflare/migrations"
     }
