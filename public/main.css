@@ -683,3 +683,30 @@
  .race-site .lookup-number-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
  .race-site .lookup-number-chip{min-height:43px;font-size:1rem}
 }
+
+
+/* Stable, compact lookup output: only total rights and ticket numbers. */
+.race-site #lookup-status{display:block;min-width:0;overflow-wrap:anywhere}
+.race-site .lookup-total{display:block;margin:12px 0;padding:15px 17px;border:1px solid #d6b66e;border-radius:12px;background:#fff7df;color:#173b2b;font-size:clamp(1.05rem,2.5vw,1.3rem);font-weight:950}
+.race-site .lookup-campaign-result{display:grid;gap:14px;margin-top:12px;padding:clamp(14px,2.5vw,22px);background:#10283a;border:1px solid #45647b;border-radius:14px}
+.race-site .lookup-campaign-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#f4d18a}
+.race-site .lookup-campaign-heading>strong{font-size:1.05rem;line-height:1.35}
+.race-site .lookup-campaign-heading>span{flex:none;padding:6px 11px;border-radius:999px;background:#f4d18a;color:#183044;font-weight:950}
+.race-site .lookup-number-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:9px}
+.race-site .lookup-number-chip{display:grid;place-items:center;min-height:48px;padding:8px 5px;border:1px solid #d7b66e;border-radius:9px;background:linear-gradient(145deg,#fff5d9,#e9ce8f);color:#172d27;font-size:1.12rem;font-weight:950;font-variant-numeric:tabular-nums;letter-spacing:.035em;box-shadow:0 2px 0 #98733b}
+.race-site .live-button{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:1.25rem;padding:13px 18px;border:1px solid #ff8a8a;border-radius:9px;background:#a81725;color:#fff;font-weight:900;box-shadow:0 8px 24px #0003}
+.race-site .live-button small{width:100%;padding-left:22px;color:#ffe1e1;font-size:.66rem;letter-spacing:.08em}
+.race-site .live-dot{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px #ffffff28}
+.race-site .live-button.is-live .live-dot{background:#ffb8b8;animation:livePulse 1.5s infinite}
+.race-site .live-button.is-disabled{border-color:#77818a;background:#45515c;color:#e1e6e9;cursor:not-allowed;box-shadow:none}
+.race-site .live-button.is-disabled small{color:#c4cbd0}
+@keyframes livePulse{50%{box-shadow:0 0 0 8px #ffffff10;opacity:.65}}
+.race-site .card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.race-site .bank-mini-details{margin:8px 0 0;color:#d7e0e5;font-size:.76rem;line-height:1.5}
+@media(max-width:520px){
+ .race-site .lookup-number-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .race-site .lookup-number-chip{min-height:46px;font-size:1.05rem}
+ .race-site .lookup-campaign-heading{align-items:flex-start}
+ .race-site .card-actions>*{flex:1 1 100%;min-width:0}
+ .race-site .live-button{width:100%;justify-content:center}
+}
