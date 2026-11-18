@@ -51,8 +51,7 @@ export function home({campaigns,campaign,origin,facebook}){
       <h1>СҮХБААТАРЫН<br><em>ХУРД</em></h1>
       <p class="hero-tagline">СУГАЛААТ ХУДАЛДАА</p>
       <p class="hero-intro">Сүхбаатар нутгийн хурдан хүлгийн сугалаануудтай танилцаж, бүртгүүлсэн эрхээ шалгаарай.</p>
-    </div></div></section>
-    <section class="hero-lookup"><div class="wrap">${lookup()}</div></section>
+    </div>${lookup()}</div></section>
     <nav class="hero-rail" aria-label="Шуурхай холбоос"><div class="wrap">
       <a href="#campaigns"><img src="/horse-mark.webp" width="26" height="26" alt=""> Идэвхтэй сугалаа</a>
       <a href="#lookup"><span aria-hidden="true">▥</span> ЭРХ ШАЛГАХ</a>
