@@ -102,7 +102,8 @@ async function route(req,env){
     const campaign=path==='/'?null:await one(statsSql+` WHERE ${active} AND c.slug=?1`,path.slice(10));
     if(path!=='/'&&!campaign)return html(views.message('Сугалаа олдсонгүй'),404);
     const campaigns=campaign?[]:await all(statsSql+` WHERE ${active} ORDER BY c.id DESC`);
-    return html(views.home({campaigns,campaign,origin,facebook:await setting('facebook')}));
+    const copyRow=await one("SELECT value FROM site_settings WHERE key='copy'");
+    return html(views.home({campaigns,campaign,origin,facebook:await setting('facebook'),copy:copyRow?JSON.parse(copyRow.value):{}}));
   }
   const media=path.match(/^\/media\/([a-f0-9]{64})$/);
   if(method==='GET'&&media){
@@ -169,7 +170,7 @@ async function route(req,env){
     return redirect('/admin/login',cookie('',0,secure));
   }
   if(path==='/admin'&&method==='GET'){
-    const [campaigns,stats,logs,imports,facebook]=await Promise.all([
+    const [campaigns,stats,logs,imports,facebook,copyRow]=await Promise.all([
       all(statsSql+' WHERE NOT c.archived ORDER BY c.id DESC'),
       one(`SELECT count(*) transactions,count(*) FILTER (WHERE status='confirmed') confirmed,
        count(*) FILTER (WHERE status='pending') pending,count(DISTINCT participant_id) FILTER(WHERE status='confirmed') participants,
@@ -177,17 +178,20 @@ async function route(req,env){
        (SELECT count(*) FROM campaigns c WHERE ${active}) active FROM transactions`),
       all('SELECT action,target,created_at FROM audit_logs ORDER BY id DESC LIMIT 15'),
       all('SELECT i.*,c.title FROM imports i JOIN campaigns c ON c.id=i.campaign_id ORDER BY i.id DESC LIMIT 25'),
-      setting('facebook')
+      setting('facebook'),one("SELECT value FROM site_settings WHERE key='copy'")
     ]);
     for(const row of imports)row.summary=JSON.parse(row.summary);
-    return html(views.admin(campaigns,stats,logs,imports,facebook,admin.role==='owner',true));
+    return html(views.admin(campaigns,stats,logs,imports,facebook,admin.role==='owner',true,copyRow?JSON.parse(copyRow.value):{}));
   }
   if(path==='/admin/site'&&method==='POST'){
     owner();
     const body=await readBody(req);
     const facebook=httpsUrl(field(body,'facebook',2048));
     if(facebook&&!['www.facebook.com','facebook.com','m.facebook.com','fb.com','fb.me','m.me'].includes(new URL(facebook).hostname)) fail('Facebook холбоос оруулна уу');
-    await db.batch([stmt("INSERT INTO site_settings VALUES ('facebook',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",facebook),audit(admin.id,'site.updated','facebook')]);
+    const keys=['heroTitle','heroBrand','heroTagline','heroIntro','lookupTitle','lookupHelp','lookupButton','phoneLabel','campaignHeading','campaignIntro','helpTitle','helpText','priceLabel','shareLabel','contactLabel','bankMemo','bankNote'];
+    const copy={};for(const key of keys)copy[key]=field(body,key,1200);
+    for(const key of ['showPrice','showStats','showBank','showShare','showContact'])copy[key]=body[key]==='on';
+    await db.batch([stmt("INSERT INTO site_settings VALUES ('facebook',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",facebook),stmt("INSERT INTO site_settings VALUES ('copy',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",JSON.stringify(copy)),audit(admin.id,'site.updated','copy')]);
     return redirect('/admin');
   }
   const campaignPath=path.match(/^\/admin\/campaigns\/(new|[1-9]\d*)(\/(?:delete|hard-delete))?$/);
@@ -215,13 +219,22 @@ async function route(req,env){
     owner();
     const body=await readBody(req,1700000);
     const id=number(body.id),slug=field(body,'slug',100,true),title=field(body,'title',150,true),description=field(body,'description',6000,true);
-    const total=number(body.total,1000000),price=number(body.price,1000000000),goal=body.participantGoal?number(body.participantGoal,1000000):null;
-    if(!total||!price||body.participantGoal&&!goal||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))fail();
-    const bank=field(body,'bank',100),holder=field(body,'holder',120),account=field(body,'account',40),iban=field(body,'iban',40),logo=httpsUrl(field(body,'logo',2048))||null,provider=field(body,'provider',100);
+    const total=number(body.total,1000000),price=body.price===''?0:number(body.price,1000000000);
+    if(!total||(body.price!==''&&body.price!=='0'&&!price)||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))fail();
+    const bank=field(body,'bank',100),holder=field(body,'holder',120),account=field(body,'account',40),iban=field(body,'iban',40),provider=field(body,'provider',100);
+    let logo=httpsUrl(field(body,'logo',2048),true)||null;
     const starts=date(field(body,'starts',40)),ends=date(field(body,'ends',40));
     if(starts&&ends&&starts>=ends)fail('Сугалааны хугацааг шалгана уу');
     let image=httpsUrl(field(body,'image',2048),true)||null;
     const statements=[];
+    if(body.bankLogo instanceof Blob&&body.bankLogo.size){
+      if(body.bankLogo.size>1000000)fail('Банкны логоны дээд хэмжээ 1 МБ',413);
+      const bytes=new Uint8Array(await body.bankLogo.arrayBuffer()),mime=imageType(bytes);
+      if(!mime)fail('JPG, PNG эсвэл WebP лого оруулна уу');
+      const mediaId=await digest(bytes);
+      statements.push(stmt('INSERT OR IGNORE INTO images VALUES (?1,?2,?3)',mediaId,mime,bytes.buffer));
+      logo='/media/'+mediaId;
+    }
     if(body.photo instanceof Blob&&body.photo.size){
       if(body.photo.size>1500000)fail('Зургийн дээд хэмжээ 1.5 МБ',413);
       const bytes=new Uint8Array(await body.photo.arrayBuffer());
@@ -276,11 +289,12 @@ async function route(req,env){
     }
   }
   if(method==='GET'&&path==='/admin/transactions'){
-    const term=(url.searchParams.get('q')||'').slice(0,100),page=number(url.searchParams.get('page'))||1;
+    const term=(url.searchParams.get('q')||'').slice(0,100),campaignId=number(url.searchParams.get('campaign')),page=number(url.searchParams.get('page'))||1;
+    const campaigns=await all('SELECT id,title FROM campaigns ORDER BY id DESC');
     const rows=await all(`SELECT t.*,p.phone,c.title FROM transactions t JOIN participants p ON p.id=t.participant_id
-      JOIN campaigns c ON c.id=t.campaign_id WHERE ?1='' OR instr(p.phone,?1)>0 OR instr(lower(t.memo),lower(?1))>0 OR CAST(t.id AS TEXT)=?1
-      ORDER BY t.id DESC LIMIT 51 OFFSET ?2`,term,(page-1)*50);
-    return html(views.transactions(rows,term,page));
+      JOIN campaigns c ON c.id=t.campaign_id WHERE (?1=0 OR c.id=?1) AND (?2='' OR instr(p.phone,?2)>0 OR instr(lower(t.memo),lower(?2))>0 OR CAST(t.id AS TEXT)=?2)
+      ORDER BY t.id DESC LIMIT 51 OFFSET ?3`,campaignId,term,(page-1)*50);
+    return html(views.transactions(rows,term,page,campaigns,campaignId));
   }
   const transactionPath=path.match(/^\/admin\/transactions\/(new|[1-9]\d*)$/);
   if(transactionPath){
