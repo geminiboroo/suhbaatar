@@ -26,13 +26,8 @@ export async function importTickets(db,body,admin,session,mode){
   const campaign=campaignRow.results[0];
   if(!campaign) throw new Error('Сугалаа олдсонгүй');
   const used=new Set(ticketRows.results.map(r=>r.number));
-  // Expand the campaign's ticket-number ceiling to include every valid number supplied by this workbook.
-  let targetTotal=Number(campaign.total);
-  for(const input of body.rows){
-    if(!Array.isArray(input)||typeof input[2]!=='string') continue;
-    try { for(const n of ticketNumbers(input[2])) targetTotal=Math.max(targetTotal,n); } catch {}
-  }
-  const summary={rows:0,valid:0,invalid:0,duplicate:0,capacity:0,capacityRows:0,tickets:0,campaignTotal:targetTotal,totalIncrease:targetTotal-Number(campaign.total)};
+  const campaignTotal=Number(campaign.total);
+  const summary={rows:0,valid:0,invalid:0,duplicate:0,capacity:0,capacityRows:0,tickets:0,campaignTotal};
   const data=[];
   let previous=0;
   for(const input of body.rows){
@@ -51,9 +46,9 @@ export async function importTickets(db,body,admin,session,mode){
       tickets=unique.filter(n=>!used.has(n));
       const skipped=skippedInRow+(unique.length-tickets.length);
       summary.duplicate+=skipped;
-      const inRange=tickets.filter(n=>n<=targetTotal);
+      const inRange=tickets.filter(n=>n<=campaignTotal);
       const outOfRange=tickets.length-inRange.length;
-      const remaining=Math.max(0,targetTotal-used.size);
+      const remaining=Math.max(0,campaignTotal-used.size);
       const accepted=inRange.slice(0,remaining);
       const capacitySkipped=outOfRange+(inRange.length-accepted.length);
       summary.capacity+=capacitySkipped;
@@ -104,7 +99,7 @@ export async function importTickets(db,body,admin,session,mode){
     stmt(`INSERT INTO import_rows(import_id,row_no,result,reason,transaction_id)
        SELECT i.id,json_extract(j.value,'$.row'),json_extract(j.value,'$.status'),json_extract(j.value,'$.reason'),t.id
        FROM json_each(?1) j JOIN imports i ON i.commit_key=?2 LEFT JOIN transactions t ON t.import_id=i.id AND t.source_row=json_extract(j.value,'$.row')`,payload,key),
-    stmt('UPDATE campaigns SET total=MAX(total,?2),revision=revision+1 WHERE id=?1 AND revision=?3 AND EXISTS(SELECT 1 FROM imports WHERE commit_key=?4)',id,targetTotal,campaign.revision,key),
+    stmt('UPDATE campaigns SET revision=revision+1 WHERE id=?1 AND revision=?2 AND EXISTS(SELECT 1 FROM imports WHERE commit_key=?3)',id,campaign.revision,key),
     stmt("INSERT INTO audit_logs(admin_id,action,target) SELECT ?1,'import.completed',id FROM imports WHERE commit_key=?2",admin,key)
   ]);
   const importId=results[0]?.results?.[0]?.id;
