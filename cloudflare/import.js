@@ -43,16 +43,28 @@ export async function importTickets(db,body,admin,session,mode){
       if(!requested.length) throw new Error('Эрхийн дугаар оруулаагүй байна');
       const unique=[...new Set(requested)];
       const skippedInRow=requested.length-unique.length;
-      tickets=unique.filter(n=>!used.has(n));
-      const skipped=skippedInRow+(unique.length-tickets.length);
+      const notAlreadyUsed=unique.filter(n=>!used.has(n));
+      const skipped=skippedInRow+(unique.length-notAlreadyUsed.length);
       summary.duplicate+=skipped;
-      const inRange=tickets.filter(n=>n<=campaignTotal);
-      const outOfRange=tickets.length-inRange.length;
       const remaining=Math.max(0,campaignTotal-used.size);
-      const accepted=inRange.slice(0,remaining);
-      const capacitySkipped=outOfRange+(inRange.length-accepted.length);
+      // Keep valid requested numbers. If an Excel ticket number exceeds the configured
+      // campaign ceiling, assign that entry the next free number within the ceiling.
+      const inRange=notAlreadyUsed.filter(n=>n<=campaignTotal);
+      const outOfRange=notAlreadyUsed.filter(n=>n>campaignTotal);
+      tickets=inRange.slice(0,remaining);
+      let slots=remaining-tickets.length;
+      if(slots>0&&outOfRange.length){
+        const occupied=new Set([...used,...tickets]);
+        for(let n=1;n<=campaignTotal&&slots>0&&tickets.length<remaining;n++){
+          if(!occupied.has(n)){
+            tickets.push(n);
+            occupied.add(n);
+            slots--;
+          }
+        }
+      }
+      const capacitySkipped=notAlreadyUsed.length-tickets.length;
       summary.capacity+=capacitySkipped;
-      tickets=accepted;
       if(!tickets.length){
         status=capacitySkipped?'capacity':'duplicate';
         reason=status==='capacity'?'Сугалааны нийт эрх дүүрсэн эсвэл эрхийн дугаар нийт хязгаараас хэтэрсэн тул импортлоогүй':'Бүх эрх өмнө бүртгэгдсэн тул алгаслаа';
