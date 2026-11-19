@@ -278,8 +278,9 @@ async function route(req,env){
     const body=await readBody(req,1200000);
     try {return json(await importTickets(db,body,admin.id,session,path.split('/').at(-1)));}
     catch(error){
+      if(error.message==='IMPORT_PREVIEW_STALE')fail('Сугалааны мэдээлэл эсвэл эрхийн жагсаалт урьдчилсан шалгалтаас хойш өөрчлөгдсөн. Шалгалтыг дахин хийнэ үү.',409);
+      if(/constraint/i.test(error.message))fail('Давхардсан эрх эсвэл өгөгдлийн хязгаар зөрчигдлөө. Урьдчилсан шалгалтыг дахин хийнэ үү.',409);
       if(error.message.includes('Утас')||/[А-Яа-яӨөҮү]/.test(error.message))fail(error.message);
-      if(/constraint/i.test(error.message))fail('Өгөгдөл өөрчлөгдсөн. Урьдчилж дахин шалгана уу',409);
       throw error;
     }
   }
