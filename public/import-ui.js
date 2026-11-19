@@ -46,7 +46,7 @@ if(form){
   const put=(tag,value,parent)=>{const n=document.createElement(tag);n.textContent=value;parent.append(n);return n;};
   function render(data,done){
     report.replaceChildren();const s=data.summary;
-    put('p',(done?'Импортолсон':'Зөв гэж таньсан')+' мөр: '+s.valid+' · Алдаатай: '+s.invalid+' · Өмнө импортолсон/давхардсан: '+s.duplicate+' · Эрхийн хязгаараас хассан: '+(s.capacity||0)+' · Дүүрсэн мөр: '+(s.capacityRows||0)+' · Шинэ эрх: '+s.tickets,report);
+    put('p',(done?'Импортолсон':'Зөв гэж таньсан')+' мөр: '+s.valid+' · Алдаатай: '+s.invalid+' · Өмнө импортолсон/давхардсан: '+s.duplicate+' · Эрхийн хязгаараас хассан: '+(s.capacity||0)+' · Дүүрсэн мөр: '+(s.capacityRows||0)+' · Шинэ эрх: '+s.tickets+' · Сугалааны нийт эрх: '+(s.campaignTotal||'—')+(s.totalIncrease?' (+'+s.totalIncrease+'-аар нэмэгдэнэ)':''),report);
     const wrap=put('div','',report);wrap.className='table-scroll';const table=put('table','',wrap),head=put('tr','',table);
     ['Мөр','Утасны дугаар(ууд)','Эрхийн тоо','Төлөв / тайлбар'].forEach(v=>put('th',v,head));
     for(const item of data.report){const tr=put('tr','',table);[item.row,(item.phones||[item.phone]).filter(Boolean).join(', '),item.count??0,item.reason||(done?'Импортолсон':'Зөв')].forEach(v=>put('td',String(v??''),tr));}
