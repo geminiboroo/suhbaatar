@@ -6,7 +6,7 @@
     "test": "node --test",
     "start": "node server.js",
     "migrate": "node migrate.js",
-    "build": "node --check server.js && node --check views.js && node --check db.js && node --check migrate.js && node --check import.js && node --check public/import-ui.js && node --check public/public-ui.js && node --check public/confirm.js",
+    "build": "node --check server.js && node --check cloudflare/worker.js && node --check cloudflare/import.js && node --check cloudflare/crypto.js && node --check views.js && node --check db.js && node --check migrate.js && node --check import.js && node --check public/import-ui.js && node --check public/public-ui.js && node --check public/confirm.js",
     "cf:dev": "wrangler dev",
     "cf:deploy": "wrangler deploy",
     "cf:migrate": "wrangler d1 migrations apply DB",
