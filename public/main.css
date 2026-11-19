@@ -803,3 +803,33 @@
 .race-site .payment-card .payment-memo-row dt{color:#74410c;font-size:.82rem;font-weight:950}
 .race-site .payment-card .payment-memo-row dd{display:block;margin-top:.45rem;padding:.75rem .85rem;color:#55220b;background:#ffe2a0;border-radius:8px;font-size:clamp(1.02rem,2.6vw,1.28rem);font-weight:950;line-height:1.35;overflow-wrap:anywhere;word-break:normal}
 @media(max-width:520px){.race-site .bank-mini-details{padding:.75rem .8rem}.race-site .bank-mini-details strong{font-size:1rem}.race-site .payment-card .payment-memo-row dd{font-size:1.04rem}}
+
+/* Clearly differentiated phone lookup states for desktop and mobile. */
+.race-site .lookup-form #lookup-status.lookup-status-empty,
+.race-site .lookup-form #lookup-status.lookup-status-error,
+.race-site .lookup-form #lookup-status.lookup-status-loading{
+ display:flex!important;flex-direction:column;align-items:flex-start;gap:8px;
+ width:100%;margin-top:14px;padding:16px 18px;border-radius:12px;
+ font-size:.92rem;line-height:1.55;font-weight:650;text-align:left;
+}
+.race-site .lookup-form #lookup-status.lookup-status-empty{
+ color:#762b22;background:#fff0ed;border:2px solid #d86a5e;
+ box-shadow:0 5px 18px #4b130d20;
+}
+.race-site .lookup-form #lookup-status.lookup-status-empty strong{
+ display:flex;align-items:center;gap:8px;color:#a32119;font-size:1.05rem;font-weight:950;
+}
+.race-site .lookup-form #lookup-status.lookup-status-empty strong:before{
+ content:"!";display:grid;place-items:center;width:25px;height:25px;flex:none;
+ border-radius:50%;background:#b52b20;color:white;font-size:1rem;
+}
+.race-site .lookup-form #lookup-status.lookup-status-empty span{color:#762b22;font-size:.88rem}
+.race-site .lookup-form #lookup-status.lookup-status-error{color:#762b22;background:#fff0ed;border:1px solid #d86a5e}
+.race-site .lookup-form #lookup-status.lookup-status-loading{color:#173b52;background:#eaf4fa;border:1px solid #8bb7d0}
+.race-site .lookup-form #lookup-status.lookup-status-success{display:grid!important;gap:12px}
+@media(max-width:600px){
+ .race-site .lookup-form #lookup-status.lookup-status-empty,
+ .race-site .lookup-form #lookup-status.lookup-status-error,
+ .race-site .lookup-form #lookup-status.lookup-status-loading{padding:14px;font-size:.88rem}
+ .race-site .lookup-form #lookup-status.lookup-status-empty strong{font-size:.98rem}
+}
