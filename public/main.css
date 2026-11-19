@@ -792,3 +792,14 @@
 /* 2026 copyright and privacy notice */
 .race-site .legal-notice{max-width:1200px;margin:18px auto 0;padding:14px 0 20px;border-top:1px solid #ffffff25;color:#aebdc8;font-size:.72rem;line-height:1.65}
 .race-site .legal-notice p{margin:5px 0}
+
+
+/* Responsive payment account and transfer memo emphasis */
+.race-site .bank-mini-details{display:grid;grid-template-columns:minmax(0,1fr);gap:.3rem;margin:.8rem 0 0;padding:.85rem 1rem;color:#10243a;background:#f7f3e8;border:1px solid #d8b45f;border-radius:12px;font-size:.78rem;line-height:1.35}
+.race-site .bank-mini-details span{color:#536477;font-size:.68rem;font-weight:900;letter-spacing:.09em}
+.race-site .bank-mini-details strong{display:block;color:#071a30;font-size:1.08rem;font-weight:950;line-height:1.35;overflow-wrap:anywhere;word-break:normal;font-variant-numeric:tabular-nums}
+.race-site .bank-mini-details .memo-highlight{padding:.65rem .75rem;border-radius:8px;color:#5b250d;background:#ffe3a0;border:1px solid #e8b84f;font-size:clamp(1rem,2.2vw,1.18rem);letter-spacing:.015em}
+.race-site .payment-card .payment-memo-row{background:#fff0c9;border:2px solid #e3ad38;box-shadow:0 4px 12px #9a6b1b20}
+.race-site .payment-card .payment-memo-row dt{color:#74410c;font-size:.82rem;font-weight:950}
+.race-site .payment-card .payment-memo-row dd{display:block;margin-top:.45rem;padding:.75rem .85rem;color:#55220b;background:#ffe2a0;border-radius:8px;font-size:clamp(1.02rem,2.6vw,1.28rem);font-weight:950;line-height:1.35;overflow-wrap:anywhere;word-break:normal}
+@media(max-width:520px){.race-site .bank-mini-details{padding:.75rem .8rem}.race-site .bank-mini-details strong{font-size:1rem}.race-site .payment-card .payment-memo-row dd{font-size:1.04rem}}
