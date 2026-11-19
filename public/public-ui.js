@@ -33,7 +33,11 @@ form?.addEventListener('submit', async event => {
       status.append(title, detail);
       return;
     }
-    status.className = 'lookup-status lookup-status-success'; = document.createElement('strong');total.className='lookup-total';total.textContent=new Intl.NumberFormat('mn-MN').format(result.count)+' эрх нийт бүртгэгдсэн байна';status.append(total);
+    status.className = 'lookup-status lookup-status-success';
+    const total = document.createElement('strong');
+    total.className = 'lookup-total';
+    total.textContent = new Intl.NumberFormat('mn-MN').format(result.count) + ' эрх нийт бүртгэгдсэн байна';
+    status.append(total);
     for(const campaign of result.campaigns||[]){
       const section=document.createElement('section');section.className='lookup-campaign-result';
       const heading=document.createElement('div');heading.className='lookup-campaign-heading';
