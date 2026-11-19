@@ -26,7 +26,7 @@ export async function importTickets(db,body,admin,session,mode){
   const campaign=campaignRow.results[0];
   if(!campaign) throw new Error('Сугалаа олдсонгүй');
   const used=new Set(ticketRows.results.map(r=>r.number));
-  const summary={rows:0,valid:0,invalid:0,duplicate:0,tickets:0};
+  const summary={rows:0,valid:0,invalid:0,duplicate:0,capacity:0,capacityRows:0,tickets:0};
   const data=[];
   let previous=0;
   for(const input of body.rows){
@@ -45,15 +45,27 @@ export async function importTickets(db,body,admin,session,mode){
       tickets=unique.filter(n=>!used.has(n));
       const skipped=skippedInRow+(unique.length-tickets.length);
       summary.duplicate+=skipped;
-      if(!tickets.length){status='duplicate';reason='Бүх эрх өмнө бүртгэгдсэн тул алгаслаа';}
-      else{
+      const inRange=tickets.filter(n=>n<=Number(campaign.total));
+      const outOfRange=tickets.length-inRange.length;
+      const remaining=Math.max(0,Number(campaign.total)-used.size);
+      const accepted=inRange.slice(0,remaining);
+      const capacitySkipped=outOfRange+(inRange.length-accepted.length);
+      summary.capacity+=capacitySkipped;
+      tickets=accepted;
+      if(!tickets.length){
+        status=remaining===0||capacitySkipped?'capacity':'duplicate';
+        reason=status==='capacity'?'Сугалааны нийт эрх дүүрсэн эсвэл эрхийн дугаар нийт хязгаараас хэтэрсэн тул импортлоогүй':'Бүх эрх өмнө бүртгэгдсэн тул алгаслаа';
+      }else{
         for(const n of tickets)used.add(n);
         summary.tickets+=tickets.length;
-        if(skipped)reason=skipped+' давхардсан дугаарыг тооцоогүй, '+tickets.length+' шинэ эрхийг нэмнэ';
+        const notes=[];
+        if(skipped)notes.push(skipped+' давхардсан эрхийг алгассан');
+        if(capacitySkipped)notes.push(capacitySkipped+' эрхийг нийт хязгаараас шалтгаалан импортлоогүй');
+        if(notes.length)reason=notes.join('; ');
       }
     } catch(error){status='invalid';reason=error.message;}
     summary.rows++;
-    summary[status]++;
+    if(status==='capacity')summary.capacityRows++;else summary[status]++;
     data.push({row,phone:phones[0]||'',phones,tickets,status,reason,occurredAt,amount});
   }
   const fingerprint=await sign(session,JSON.stringify([id,campaign.revision,body.rows]));
