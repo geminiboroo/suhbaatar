@@ -140,7 +140,7 @@ export function transactions(rows,term,page,campaigns=[],campaignId=0){
   const query=(p)=>'/admin/transactions?q='+encodeURIComponent(term)+'&campaign='+campaignId+'&page='+p;
   return consolePage('Гүйлгээнүүд',`<section class="panel"><p>${link('/admin/transactions/new','Гүйлгээ бүртгэх','button secondary')}</p><form action="/admin/transactions" class="actions">${field('Утас, гүйлгээний утга эсвэл ID','q',term,'search','maxlength="100"')}<label>Сугалаагаар шүүх<select name="campaign"><option value="0">Бүх сугалаа</option>${options(campaigns.map(c=>[c.id,c.title]),campaignId)}</select></label><button class="button gold">Шүүх</button></form>
   ${rows.length?`<div class="table-scroll"><table><thead><tr><th>ID</th><th>Утас</th><th>Сугалаа</th><th>Огноо</th><th>Дүн</th><th>Эрх</th><th>Төлөв</th></tr></thead>
-  <tbody>${rows.slice(0,50).map(t=>`<tr><td>${link('/admin/transactions/'+t.id,'#'+t.id,'text-link')}</td><td>${e(t.phone)}</td><td>${e(t.title)}</td><td>${date(t.occurred_at)}</td><td>${t.amount==null?'—':money(t.amount)}</td><td>${t.count}</td><td>${statuses[t.status]}</td></tr>`).join('')}</tbody></table></div>`:'<p>Тохирох гүйлгээ алга.</p>'}
+  <tbody>${rows.slice(0,50).map(t=>`<tr><td>${link('/admin/transactions/'+t.id,'#'+t.id,'text-link')}</td><td>${e(t.phone)}</td><td>${e(t.title)}</td><td>${date(t.occurred_at)}</td><td>${t.amount==null?'—':money(t.amount)}</td><td>${t.status==='confirmed'?fmt(t.actual_count):'—'}${t.status==='confirmed'&&t.actual_count!==t.count?' · ЗӨРҮҮ ШАЛГАХ':''}</td><td>${statuses[t.status]}</td></tr>`).join('')}</tbody></table></div>`:'<p>Тохирох гүйлгээ алга.</p>'}
   <div class="actions">${page>1?link(query(page-1),'← Өмнөх','button secondary'):''}${rows.length>50?link(query(page+1),'Дараах →','button secondary'):''}</div></section>`);
 }
 export function transactionForm(t,campaigns){
@@ -150,6 +150,7 @@ export function transactionForm(t,campaigns){
   ${field('Утас','phone',t.phone,'tel','required')}${field('Огноо (Улаанбаатар)','date',inputDate(t.occurred_at),'datetime-local','required')}
   ${field('Дүн','amount',t.amount,'number','required min="1"')}${field('Банк','bank',t.bank)}${field('Гүйлгээний утга','memo',t.memo)}
   ${field('Эрхийн тоо','count',t.count,'number','required min="1" max="5000"')}${field('Эрхийн дугаарууд','numbers',(t.tickets.length?t.tickets:t.requested).join(', '))}
+  <p class="full muted">Нэг утасны дугаараар олон гүйлгээ болон олон сугалаанд оролцож болно. Дугаар оруулахгүй бол баталгаажуулах үед боломжтой эрхийг автоматаар олгоно. Дугаар оруулсан бол тоо нь эрхийн тоотой яг таарах ёстой.</p>
   <div class="actions full"><button name="action" value="save" class="button gold">Хадгалах</button>
   ${t.id&&t.status!=='confirmed'?'<button name="action" value="confirm" formnovalidate class="button secondary">Баталгаажуулах</button>':''}
   ${t.id&&t.status!=='reversed'?'<button name="action" value="reverse" formnovalidate class="button danger" data-confirm="Гүйлгээний баталгаажуулалтыг буцаах уу?">Буцаах</button>':''}</div></form>`,'<script src="/confirm.js" defer></script>');
