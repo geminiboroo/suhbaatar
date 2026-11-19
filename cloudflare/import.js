@@ -59,7 +59,7 @@ export async function importTickets(db,body,admin,session,mode){
   const fingerprint=await sign(session,JSON.stringify([id,campaign.revision,body.rows]));
   const report=data.map(({row,phone,phones,tickets,status,reason,occurredAt,amount})=>({row,phone,phones,count:tickets.length,tickets,occurredAt,amount,status,reason}));
   if(mode==='preview') return {summary,report,fingerprint};
-  if(!equals(fingerprint,body.fingerprint)) throw new Error('Өгөгдөл өөрчлөгдсөн. Урьдчилж дахин шалгана уу');
+  if(!equals(fingerprint,body.fingerprint)) throw new Error('IMPORT_PREVIEW_STALE');
   if(!summary.valid) throw new Error('Импортлох зөв мөр алга');
   const key=randomToken();
   const payload=JSON.stringify(data);
@@ -70,7 +70,8 @@ export async function importTickets(db,body,admin,session,mode){
        VALUES ((SELECT id FROM campaigns WHERE id=?1 AND revision=?2 AND NOT archived),?3,?4,?5) RETURNING id`,
        id,campaign.revision,admin,JSON.stringify(summary),key),
     stmt(`INSERT OR IGNORE INTO participants(phone)
-       SELECT DISTINCT json_extract(value,'$.phone') FROM json_each(?1) WHERE json_extract(value,'$.status')='valid'`,payload),
+       SELECT DISTINCT json_extract(value,'$.phone') FROM json_each(?1)
+       WHERE json_extract(value,'$.status')='valid' AND EXISTS(SELECT 1 FROM imports WHERE commit_key=?2)`,payload,key),
     stmt(`INSERT INTO transactions(campaign_id,participant_id,import_id,source_row,occurred_at,amount,count,requested,status)
        SELECT ?1,p.id,i.id,json_extract(j.value,'$.row'),json_extract(j.value,'$.occurredAt'),json_extract(j.value,'$.amount'),json_array_length(j.value,'$.tickets'),json_extract(j.value,'$.tickets'),'confirmed'
        FROM json_each(?2) j JOIN participants p ON p.phone=json_extract(j.value,'$.phone')
@@ -78,14 +79,17 @@ export async function importTickets(db,body,admin,session,mode){
     stmt(`INSERT OR IGNORE INTO participant_phones(phone,participant_id)
        SELECT phone.value,p.id FROM json_each(?1) j,json_each(j.value,'$.phones') phone
        JOIN participants p ON p.phone=json_extract(j.value,'$.phone')
-       WHERE json_extract(j.value,'$.status')='valid'`,payload),
+       WHERE json_extract(j.value,'$.status')='valid'
+       AND EXISTS(SELECT 1 FROM imports WHERE commit_key=?2)`,payload,key),
     stmt(`INSERT INTO lottery_tickets(campaign_id,transaction_id,number)
        SELECT ?1,t.id,n.value FROM transactions t JOIN imports i ON i.id=t.import_id JOIN json_each(t.requested) n WHERE i.commit_key=?2`,id,key),
     stmt(`INSERT INTO import_rows(import_id,row_no,result,reason,transaction_id)
        SELECT i.id,json_extract(j.value,'$.row'),json_extract(j.value,'$.status'),json_extract(j.value,'$.reason'),t.id
        FROM json_each(?1) j JOIN imports i ON i.commit_key=?2 LEFT JOIN transactions t ON t.import_id=i.id AND t.source_row=json_extract(j.value,'$.row')`,payload,key),
-    stmt('UPDATE campaigns SET revision=revision+1 WHERE id=?1',id),
+    stmt('UPDATE campaigns SET revision=revision+1 WHERE id=?1 AND revision=?2 AND EXISTS(SELECT 1 FROM imports WHERE commit_key=?3)',id,campaign.revision,key),
     stmt("INSERT INTO audit_logs(admin_id,action,target) SELECT ?1,'import.completed',id FROM imports WHERE commit_key=?2",admin,key)
   ]);
-  return {id:results[0].results[0].id,summary,report};
+  const importId=results[0]?.results?.[0]?.id;
+  if(!importId) throw new Error('IMPORT_PREVIEW_STALE');
+  return {id:importId,summary,report};
 }
