@@ -310,7 +310,9 @@ async function route(req,env){
   if(method==='GET'&&path==='/admin/transactions'){
     const term=(url.searchParams.get('q')||'').slice(0,100),campaignId=number(url.searchParams.get('campaign')),page=number(url.searchParams.get('page'))||1;
     const campaigns=await all('SELECT id,title FROM campaigns ORDER BY id DESC');
-    const rows=await all(`SELECT t.*,p.phone,c.title FROM transactions t JOIN participants p ON p.id=t.participant_id
+    const rows=await all(`SELECT t.*,p.phone,c.title,
+      (SELECT count(*) FROM lottery_tickets l WHERE l.transaction_id=t.id) actual_count
+      FROM transactions t JOIN participants p ON p.id=t.participant_id
       JOIN campaigns c ON c.id=t.campaign_id WHERE (?1=0 OR c.id=?1) AND (?2='' OR instr(p.phone,?2)>0 OR instr(lower(t.memo),lower(?2))>0 OR CAST(t.id AS TEXT)=?2)
       ORDER BY t.id DESC LIMIT 51 OFFSET ?3`,campaignId,term,(page-1)*50);
     return html(views.transactions(rows,term,page,campaigns,campaignId));
@@ -331,9 +333,10 @@ async function route(req,env){
       const action=id?body.action:'save';
       if(!['save','confirm','reverse'].includes(action))fail();
       if(action==='reverse'){
-        await db.batch([
+        if(!entry)fail('Гүйлгээ олдсонгүй',404);
+        if(entry.status!=='reversed')await db.batch([
           stmt('DELETE FROM lottery_tickets WHERE transaction_id=?1',id),
-          stmt("UPDATE transactions SET status='reversed' WHERE id=?1",id),
+          stmt("UPDATE transactions SET status='reversed' WHERE id=?1 AND status<>'reversed'",id),
           stmt('UPDATE campaigns SET revision=revision+1 WHERE id=?1',entry.campaign_id),
           audit(admin.id,'transaction.reverse',id)
         ]);
@@ -350,28 +353,36 @@ async function route(req,env){
       const bank=saving?field(body,'bank',100):entry.bank,memo=saving?field(body,'memo',500):entry.memo;
       let requested;
       try{requested=saving?ticketNumbers(field(body,'numbers',30000)):JSON.parse(entry.requested);}
-      catch{fail('Эрхийн дугаар буруу эсвэл давхардсан');}
-      if(!phone||!count||saving&&(!payment||!occurred)||requested.length&&requested.length!==count)fail();
+      catch{fail('Эрхийн дугаар буруу байна. Зөвхөн тоо, таслал эсвэл зай ашиглана уу.');}
+      if(!phone||!count||saving&&(!payment||!occurred))fail('Утас, огноо, дүн болон эрхийн тоог шалгана уу.');
+      if(requested.length&&requested.length!==count)fail('Эрхийн тоо ('+count+') болон оруулсан дугаарын тоо ('+requested.length+') зөрүүтэй байна.');
+      if(new Set(requested).size!==requested.length)fail('Нэг гүйлгээнд ижил эрхийн дугаарыг давхар оруулсан байна.');
+      if(requested.some(n=>n>campaign.total))fail('Эрхийн дугаар сугалааны нийт эрхийн хязгаараас хэтэрсэн байна.');
       if(action==='confirm'&&entry.status==='confirmed')return redirect('/admin/transactions');
       const status=action==='confirm'?'confirmed':entry?.status||'pending';
       const tickets=[...requested];
       if(status==='confirmed'){
         const used=new Set((await all('SELECT number FROM lottery_tickets WHERE campaign_id=?1 AND transaction_id<>?2',cid,id)).map(row=>row.number));
-        if(used.size+count>campaign.total||tickets.some(n=>n>campaign.total||used.has(n)))fail('Эрхийн дугаар эсвэл багтаамжийг шалгана уу');
+        if(used.size+count>campaign.total)fail('Сугалааны үлдэгдэл эрх хүрэлцэхгүй байна. Одоогийн үлдэгдлийг шалгана уу.');
+        if(tickets.some(n=>used.has(n)))fail('Оруулсан эрхийн дугаар өөр гүйлгээнд аль хэдийн олгогдсон байна.');
         if(!tickets.length)for(let n=1;tickets.length<count&&n<=campaign.total;n++)if(!used.has(n))tickets.push(n);
+        if(tickets.length!==count)fail('Шаардлагатай эрхийн тоог олгох боломжгүй байна.');
       }
       const insertPhone=stmt('INSERT OR IGNORE INTO participants(phone) VALUES (?1)',phone);
       const values=[cid,phone,occurred,payment,bank,memo,count,JSON.stringify(requested),status];
       if(id){
-        const statements=[insertPhone,stmt(`UPDATE transactions SET campaign_id=?1,participant_id=(SELECT id FROM participants WHERE phone=?2),
-          occurred_at=?3,amount=?4,bank=?5,memo=?6,count=CASE WHEN (SELECT revision FROM campaigns WHERE id=?1)=?11
-          AND campaign_id=?12 AND status=?13 THEN ?7 ELSE 0 END,requested=?8,status=?9 WHERE id=?10`,
-          ...values,id,campaign.revision,entry.campaign_id,entry.status),
-          stmt('DELETE FROM lottery_tickets WHERE transaction_id=?1',id)];
-        if(status==='confirmed')statements.push(stmt('INSERT INTO lottery_tickets(campaign_id,transaction_id,number) SELECT ?1,?2,value FROM json_each(?3)',cid,id,JSON.stringify(tickets)));
-        statements.push(stmt('UPDATE campaigns SET revision=revision+1 WHERE id IN (?1,?2)',cid,entry.campaign_id),audit(admin.id,'transaction.'+action,id));
-        await db.batch(statements);
+        await db.batch([
+          insertPhone,
+          stmt(`UPDATE transactions SET campaign_id=?1,participant_id=(SELECT id FROM participants WHERE phone=?2),
+            occurred_at=?3,amount=?4,bank=?5,memo=?6,count=?7,requested=?8,status=?9 WHERE id=?10`,
+            ...values,id),
+          stmt('DELETE FROM lottery_tickets WHERE transaction_id=?1',id),
+          ...(status==='confirmed'?[stmt('INSERT INTO lottery_tickets(campaign_id,transaction_id,number) SELECT ?1,?2,value FROM json_each(?3)',cid,id,JSON.stringify(tickets))]:[]),
+          stmt('UPDATE campaigns SET revision=revision+1 WHERE id IN (?1,?2)',cid,entry.campaign_id),
+          audit(admin.id,'transaction.'+action,id)
+        ]);
       }else{
+        const created=await one('SELECT id FROM transactions WHERE 1=0');
         await db.batch([insertPhone,stmt(`INSERT INTO transactions(campaign_id,participant_id,occurred_at,amount,bank,memo,count,requested,status)
           VALUES (?1,(SELECT id FROM participants WHERE phone=?2),?3,?4,?5,?6,?7,?8,?9)`,...values),
           stmt("INSERT INTO audit_logs(admin_id,action,target) VALUES (?1,'transaction.created',last_insert_rowid())",admin.id)]);
