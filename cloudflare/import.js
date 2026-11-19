@@ -53,7 +53,7 @@ export async function importTickets(db,body,admin,session,mode){
       summary.capacity+=capacitySkipped;
       tickets=accepted;
       if(!tickets.length){
-        status=remaining===0||capacitySkipped?'capacity':'duplicate';
+        status=capacitySkipped?'capacity':'duplicate';
         reason=status==='capacity'?'Сугалааны нийт эрх дүүрсэн эсвэл эрхийн дугаар нийт хязгаараас хэтэрсэн тул импортлоогүй':'Бүх эрх өмнө бүртгэгдсэн тул алгаслаа';
       }else{
         for(const n of tickets)used.add(n);
