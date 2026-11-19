@@ -382,7 +382,6 @@ async function route(req,env){
           audit(admin.id,'transaction.'+action,id)
         ]);
       }else{
-        const created=await one('SELECT id FROM transactions WHERE 1=0');
         await db.batch([insertPhone,stmt(`INSERT INTO transactions(campaign_id,participant_id,occurred_at,amount,bank,memo,count,requested,status)
           VALUES (?1,(SELECT id FROM participants WHERE phone=?2),?3,?4,?5,?6,?7,?8,?9)`,...values),
           stmt("INSERT INTO audit_logs(admin_id,action,target) VALUES (?1,'transaction.created',last_insert_rowid())",admin.id)]);
