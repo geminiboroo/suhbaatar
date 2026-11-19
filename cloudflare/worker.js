@@ -119,10 +119,11 @@ async function route(req,env){
     if(body.campaign&&!campaignId)fail('Сугалаагаа шалгана уу.');
     await rate(db,req,'lookup',30,600);
     const found=await all(`SELECT c.id campaign_id,c.title,c.slug,l.number ticket_number
-      FROM participant_phones pp
-      JOIN transactions t ON t.participant_id=pp.participant_id
+      FROM participants p
+      JOIN transactions t ON t.participant_id=p.id
       JOIN lottery_tickets l ON l.transaction_id=t.id JOIN campaigns c ON c.id=l.campaign_id
-      WHERE pp.phone=?1 AND t.status='confirmed' AND c.public AND NOT c.archived
+      LEFT JOIN participant_phones pp ON pp.participant_id=p.id AND pp.phone=?1
+      WHERE (pp.phone=?1 OR p.phone=?1) AND t.status='confirmed' AND c.public AND NOT c.archived
       AND (?2=0 OR c.id=?2)
       GROUP BY c.id,l.number
       ORDER BY c.id DESC,l.number ASC`,phone,campaignId);
