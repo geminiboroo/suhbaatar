@@ -41,7 +41,7 @@ if(form){
   }
   async function request(mode){
     const res=await fetch('/admin/import/'+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({campaign:fields.campaign.value,rows,fingerprint:mode==='commit'?fingerprint:undefined})});
-    const data=await res.json();if(!res.ok)throw new Error(data.error||'Импортын хүсэлт амжилтгүй.');return data;
+    const data=await res.json();if(!res.ok){const error=new Error(data.error||'Импортын хүсэлт амжилтгүй.');error.status=res.status;throw error;}return data;
   }
   const put=(tag,value,parent)=>{const n=document.createElement(tag);n.textContent=value;parent.append(n);return n;};
   function render(data,done){
@@ -63,11 +63,23 @@ if(form){
   }
   async function run(mode){
     preview.disabled=true;commit.disabled=true;status.textContent=mode==='commit'?'D1-д хадгалж байна…':'Урьдчилсан шалгалт хийж байна…';
-    try{const data=await request(mode);render(data,mode==='commit');fingerprint=data.fingerprint||'';commit.hidden=!fingerprint||!data.summary.valid;
+    try{
+      const data=await request(mode);
+      render(data,mode==='commit');
+      fingerprint=data.fingerprint||'';
+      commit.hidden=!fingerprint||!data.summary.valid;
       status.textContent=mode==='commit'?'Импорт амжилттай.':'Тайланг шалгаад “Импорт батлах” дарна уу.';
       if(mode==='commit'){const a=put('a','Импортын түүх',status);a.href='/admin?import='+data.id+'#import';}
-    }catch(error){status.textContent=error.message;}
-    finally{preview.disabled=!rows.length;commit.disabled=false;}
+    }catch(error){
+      if(mode==='commit'&&error.status===409){
+        try{
+          const fresh=await request('preview');
+          render(fresh,false);fingerprint=fresh.fingerprint||'';
+          commit.hidden=!fingerprint||!fresh.summary.valid;
+          status.textContent='Өгөгдөл өөрчлөгдсөн тул шалгалтыг автоматаар шинэчиллээ. Тайланг дахин нягтлаад “Импорт батлах” дарна уу.';
+        }catch(refreshError){fingerprint='';commit.hidden=true;status.textContent=refreshError.message;}
+      }else status.textContent=error.message;
+    }finally{preview.disabled=!rows.length;commit.disabled=false;}
   }
   fields.file.addEventListener('change',inspect);
   fields.campaign.addEventListener('change',()=>{fingerprint='';commit.hidden=true;});
