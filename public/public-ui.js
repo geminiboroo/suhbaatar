@@ -8,6 +8,7 @@ form?.addEventListener('submit', async event => {
   const button = form.querySelector('button');
   button.disabled = true;
   status.hidden = false;
+  status.className = 'lookup-status lookup-status-loading';
   status.replaceChildren();
   status.textContent = 'Эрхийн тоог шалгаж байна…';
   try {
@@ -18,15 +19,21 @@ form?.addEventListener('submit', async event => {
     });
     const result = await response.json();
     if (!response.ok) {
-      status.textContent = result.error || 'Түр хүлээгээд дахин оролдоно уу.';
+      status.className = 'lookup-status lookup-status-error';
+      status.textContent = result.error || 'Шалгалт амжилтгүй боллоо. Түр хүлээгээд дахин оролдоно уу.';
       return;
     }
     status.replaceChildren();
     if (!result.count) {
-      status.textContent = 'Энэ дугаарт бүртгэлтэй эрх олдсонгүй.';
+      status.className = 'lookup-status lookup-status-empty';
+      const title = document.createElement('strong');
+      title.textContent = 'БҮРТГЭЛТЭЙ ЭРХ ОЛДСОНГҮЙ';
+      const detail = document.createElement('span');
+      detail.textContent = 'Энэ утасны дугаарт баталгаажсан эрх бүртгэгдээгүй байна. Дугаараа шалгаад дахин оролдоно уу.';
+      status.append(title, detail);
       return;
     }
-    const total = document.createElement('strong');total.className='lookup-total';total.textContent=new Intl.NumberFormat('mn-MN').format(result.count)+' эрх нийт бүртгэгдсэн байна';status.append(total);
+    status.className = 'lookup-status lookup-status-success'; = document.createElement('strong');total.className='lookup-total';total.textContent=new Intl.NumberFormat('mn-MN').format(result.count)+' эрх нийт бүртгэгдсэн байна';status.append(total);
     for(const campaign of result.campaigns||[]){
       const section=document.createElement('section');section.className='lookup-campaign-result';
       const heading=document.createElement('div');heading.className='lookup-campaign-heading';
@@ -41,7 +48,8 @@ form?.addEventListener('submit', async event => {
       section.append(numbers);status.append(section);
     }
   } catch {
-    status.textContent = 'Холболт тасарлаа. Дахин оролдоно уу.';
+    status.className = 'lookup-status lookup-status-error';
+    status.textContent = 'Холболт эсвэл серверийн алдаа гарлаа. Түр хүлээгээд дахин оролдоно уу.';
   } finally {
     button.disabled = false;
   }
